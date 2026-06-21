@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Análise Temporal — Neoplasias SP</title>
+<link rel="stylesheet" href="styles.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  .page-title-bar {
+    background: white;
+    padding: 12px 18px 10px;
+    border-radius: 10px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+    margin-bottom: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+  .page-title-bar h2 { font-size: 1.05rem; font-weight: 800; color: var(--azul); }
+  .page-title-bar p  { font-size: 0.78rem; color: var(--cinza-sub); margin-top: 2px; }
+  .page-badge {
+    font-size: 0.68rem; color: var(--cinza-sub);
+    background: #f0f3f7; border: 1px solid #dde3eb;
+    border-radius: 20px; padding: 4px 12px; white-space: nowrap;
+  }
+
+  /* figura = linha com chart + info */
+  .figura {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+  .fig-chart {
+    background: white;
+    border-radius: 10px;
+    padding: 14px 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  }
+  .fig-title {
+    font-size: 0.76rem;
+    font-weight: 700;
+    color: #1a3a5c;
+    margin-bottom: 10px;
+  }
+  .fig-canvas { position: relative; height: 230px; }
+
+  .fig-info {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  /* card de destaque */
+  .info-card {
+    background: white;
+    border-radius: 10px;
+    padding: 12px 14px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    flex: 1;
+  }
+  .info-card-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .info-icon {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    background: #e8f4fd;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+  .info-card-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--azul);
+  }
+  .info-card-text {
+    font-size: 0.7rem;
+    color: var(--cinza-texto);
+    line-height: 1.5;
+  }
+  .info-obs {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid #edf1f5;
+    font-size: 0.68rem;
+    color: var(--cinza-sub);
+    line-height: 1.45;
+  }
+  .info-obs strong { color: var(--cinza-texto); }
+
+  /* APC cards por sexo */
+  .apc-sex-card {
+    background: white;
+    border-radius: 10px;
+    padding: 12px 14px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  }
+  .apc-sex-card-title {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--azul);
+    margin-bottom: 10px;
+  }
+  .apc-sex-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+  }
+  .apc-sex-row.masc { background: #e8f4fd; }
+  .apc-sex-row.fem  { background: #fde8f4; }
+  .apc-sex-icon { font-size: 1.6rem; }
+  .apc-sex-body { flex: 1; }
+  .apc-sex-nome { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; color: #555; }
+  .apc-sex-valor { font-size: 1.3rem; font-weight: 800; color: #1a3a5c; line-height: 1; }
+  .apc-sex-ic { font-size: 0.62rem; color: var(--cinza-sub); line-height: 1.4; }
+
+  .dest-mini {
+    background: #f7fafd;
+    border-radius: 8px;
+    padding: 8px 10px;
+    border-top: 2px solid var(--azul-claro);
+  }
+  .dest-mini-title { font-size: 0.68rem; font-weight: 700; color: var(--azul); margin-bottom: 6px; display:flex;align-items:center;gap:4px; }
+  .dest-mini ul { list-style: disc; padding-left: 16px; }
+  .dest-mini ul li { font-size: 0.68rem; color: var(--cinza-texto); line-height: 1.45; margin-bottom: 3px; }
+
+  .fonte-bar {
+    font-size: 0.67rem;
+    color: #aaa;
+    padding: 8px 0 2px;
+    border-top: 1px solid #edf1f5;
+    text-align: center;
+  }
+
+  @media (max-width: 1024px) {
+    .figura { grid-template-columns: 1fr; }
+    .fig-info { flex-direction: row; flex-wrap: wrap; }
+    .fig-info > * { flex: 1; min-width: 220px; }
+  }
+  @media (max-width: 768px) {
+    .figura   { grid-template-columns: 1fr; }
+    .fig-info { flex-direction: column; }
+    .page-title-bar { flex-direction: column; gap: 6px; }
+    .fig-canvas { height: 200px; }
+    .apc-sex-card { width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <h1>Mortalidade por Neoplasias — Estado de São Paulo</h1>
+    <p>Análise epidemiológica, tendência temporal e distribuição espacial · Fonte: DATASUS / INCA</p>
+  </div>
+  <div class="header-badge">2013 – 2023</div>
+</div>
+
+<div class="layout">
+  <nav class="sidebar">
+    <a href="index.html"><span class="nav-icon">🏠</span>Visão Geral</a>
+    <a href="perfil.html"><span class="nav-icon">👥</span>Perfil Sociodemográfico</a>
+    <a href="temporal.html" class="active"><span class="nav-icon">📈</span>Análise Temporal</a>
+    <a href="tratamento.html"><span class="nav-icon">⏱️</span>Tempo Médio até Tratamento</a>
+    <a href="espacial.html"><span class="nav-icon">🗺️</span>Análise Espacial</a>
+    <div class="sidebar-footer">
+      <div class="periodo-label">Período de análise</div>
+      <div class="periodo-valor">2013 a 2023</div>
+    </div>
+  </nav>
+
+  <div class="content">
+
+    <div class="page-title-bar">
+      <div>
+        <h2>Análise Temporal da Mortalidade por Neoplasias</h2>
+        <p>Estado de São Paulo (2013–2023) — Joinpoint Regression</p>
+      </div>
+      <div class="page-badge">APC · Taxa por 100 mil hab.</div>
+    </div>
+
+    <!-- Figura 1 -->
+    <div class="figura">
+      <div class="fig-chart">
+        <div class="fig-title">Figura 1. Tendência temporal da taxa de mortalidade por neoplasias (Total) — São Paulo, 2013 a 2023</div>
+        <div class="fig-canvas"><canvas id="chartTotal"></canvas></div>
+      </div>
+      <div class="fig-info">
+        <div class="info-card">
+          <div class="info-card-header">
+            <div class="info-icon">📈</div>
+            <div class="info-card-label">Tendência crescente significativa</div>
+          </div>
+          <div class="info-card-text">
+            Entre 2013 e 2023, a taxa de mortalidade por neoplasias no estado de São Paulo apresentou aumento significativo, com <strong>APC de 1,45% ao ano</strong>.
+          </div>
+          <div class="info-obs">
+            <strong>Observação:</strong><br>
+            Houve queda pontual em 2020, mas o padrão geral é de crescimento consistente, atingindo o maior valor em 2023.
+          </div>
+        </div>
+        <div class="info-card" style="flex:none">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <div style="text-align:center;padding:8px;background:#e8f4fd;border-radius:8px">
+              <div style="font-size:0.6rem;font-weight:700;color:#555;text-transform:uppercase">Taxa 2013</div>
+              <div style="font-size:1.1rem;font-weight:800;color:#1a3a5c">113,7</div>
+              <div style="font-size:0.6rem;color:var(--cinza-sub)">por 100 mil hab.</div>
+            </div>
+            <div style="text-align:center;padding:8px;background:#fdeaed;border-radius:8px">
+              <div style="font-size:0.6rem;font-weight:700;color:#555;text-transform:uppercase">Taxa 2023</div>
+              <div style="font-size:1.1rem;font-weight:800;color:#c0392b">135,7</div>
+              <div style="font-size:0.6rem;color:var(--cinza-sub)">por 100 mil hab.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Figura 2 -->
+    <div class="figura">
+      <div class="fig-chart">
+        <div class="fig-title">Figura 2. Tendência temporal da taxa de mortalidade por neoplasias segundo sexo — São Paulo, 2013 a 2023</div>
+        <div class="fig-canvas"><canvas id="chartSexo"></canvas></div>
+      </div>
+      <div class="fig-info">
+        <div class="apc-sex-card">
+          <div class="apc-sex-card-title">Variação percentual anual (APC) por sexo (2013–2023)</div>
+          <div class="apc-sex-row masc">
+            <div class="apc-sex-icon">👨</div>
+            <div class="apc-sex-body">
+              <div class="apc-sex-nome">Masculino</div>
+              <div class="apc-sex-valor">1,06%</div>
+              <div class="apc-sex-ic">IC95%: 0,48 – 1,67 · p &lt; 0,000001</div>
+            </div>
+          </div>
+          <div class="apc-sex-row fem">
+            <div class="apc-sex-icon">👩</div>
+            <div class="apc-sex-body">
+              <div class="apc-sex-nome">Feminino</div>
+              <div class="apc-sex-valor">1,95%</div>
+              <div class="apc-sex-ic">IC95%: 1,57 – 2,36 · p &lt; 0,000001</div>
+            </div>
+          </div>
+          <div class="dest-mini">
+            <div class="dest-mini-title">⭐ Destaques</div>
+            <ul>
+              <li>Homens apresentaram taxas mais altas em todo o período.</li>
+              <li>Mulheres apresentaram crescimento mais acelerado (APC 1,95%).</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="fonte-bar">
+      Fonte: SIM / Ministério da Saúde &nbsp;|&nbsp; População: IBGE – Estimativas populacionais &nbsp;|&nbsp; Taxa por 100 mil habitantes
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /layout -->
+
+<script>
+const anos = ['2013','2014','2015','2016','2017','2018','2019','2020','2021','2022','2023'];
+const totalObs = [113.7,115.4,117.1,118.8,120.5,122.2,124.0,121.5,126.3,130.8,135.7];
+const mascObs  = [131.2,132.6,134.0,135.4,136.8,138.2,139.7,137.0,141.6,145.3,149.0];
+const femObs   = [97.5,99.5,101.4,103.4,105.5,107.6,109.8,107.2,113.2,118.2,124.0];
+
+/* Regressão linear simples */
+function linearTrend(data) {
+  const n = data.length;
+  const xMean = (n - 1) / 2;
+  const yMean = data.reduce((a, b) => a + b, 0) / n;
+  let num = 0, den = 0;
+  data.forEach((y, i) => { num += (i - xMean) * (y - yMean); den += (i - xMean) ** 2; });
+  const slope = num / den;
+  const intercept = yMean - slope * xMean;
+  return data.map((_, i) => parseFloat((intercept + slope * i).toFixed(2)));
+}
+
+const totalTend = linearTrend(totalObs);
+const mascTend  = linearTrend(mascObs);
+const femTend   = linearTrend(femObs);
+
+const baseOpt = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: { legend: { labels: { font: { size: 11 }, boxWidth: 24, padding: 10 } } },
+  scales: {
+    x: { ticks: { font: { size: 10 } } },
+    y: { ticks: { font: { size: 10 }, callback: v => v.toFixed(1) } }
+  }
+};
+
+/* Gráfico 1 — Total */
+new Chart(document.getElementById('chartTotal'), {
+  type: 'line',
+  data: {
+    labels: anos,
+    datasets: [
+      {
+        label: 'Taxa observada',
+        data: totalObs,
+        borderColor: '#f39c12',
+        backgroundColor: 'rgba(243,156,18,0.1)',
+        fill: false,
+        tension: 0.3,
+        pointRadius: 4,
+        pointBackgroundColor: '#f39c12',
+        borderWidth: 2
+      },
+      {
+        label: 'Tendência ajustada',
+        data: totalTend,
+        borderColor: '#8e44ad',
+        borderDash: [6, 4],
+        fill: false,
+        tension: 0,
+        pointRadius: 0,
+        borderWidth: 2
+      }
+    ]
+  },
+  options: { ...baseOpt, scales: { ...baseOpt.scales, y: { ...baseOpt.scales.y, min: 108 } } }
+});
+
+/* Gráfico 2 — Por sexo */
+new Chart(document.getElementById('chartSexo'), {
+  type: 'line',
+  data: {
+    labels: anos,
+    datasets: [
+      {
+        label: 'Taxa feminina observada',
+        data: femObs,
+        borderColor: '#e91e8c',
+        fill: false, tension: 0.3, pointRadius: 4,
+        pointBackgroundColor: '#e91e8c', borderWidth: 2
+      },
+      {
+        label: 'Tendência ajustada (fem.)',
+        data: femTend,
+        borderColor: '#e91e8c',
+        borderDash: [6, 4],
+        fill: false, tension: 0, pointRadius: 0, borderWidth: 1.5
+      },
+      {
+        label: 'Taxa masculina observada',
+        data: mascObs,
+        borderColor: '#2e86c1',
+        fill: false, tension: 0.3, pointRadius: 4,
+        pointBackgroundColor: '#2e86c1', borderWidth: 2
+      },
+      {
+        label: 'Tendência ajustada (masc.)',
+        data: mascTend,
+        borderColor: '#2e86c1',
+        borderDash: [6, 4],
+        fill: false, tension: 0, pointRadius: 0, borderWidth: 1.5
+      }
+    ]
+  },
+  options: { ...baseOpt, scales: { ...baseOpt.scales, y: { ...baseOpt.scales.y, min: 90 } } }
+});
+</script>
+</body>
+</html>

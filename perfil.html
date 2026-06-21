@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Perfil Sociodemográfico — Neoplasias SP</title>
+<link rel="stylesheet" href="styles.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  /* ── TÍTULO DA PÁGINA ── */
+  .page-title-bar {
+    background: white;
+    padding: 12px 18px 10px;
+    border-radius: 10px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+    margin-bottom: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+  .page-title-bar h2 { font-size: 1.1rem; font-weight: 800; color: var(--azul); }
+  .page-title-bar p  { font-size: 0.78rem; color: var(--cinza-sub); margin-top: 2px; }
+  .page-badge {
+    font-size: 0.68rem; color: var(--cinza-sub);
+    background: #f0f3f7; border: 1px solid #dde3eb;
+    border-radius: 20px; padding: 4px 12px; white-space: nowrap;
+  }
+
+  /* ── KPI CARDS TOPO ── */
+  .kpi-row {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr 1fr 0.7fr;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .kpi-card {
+    border-radius: 12px;
+    padding: 14px 16px;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .kpi-card.azul    { background: linear-gradient(135deg,#1565c0,#1976d2); }
+  .kpi-card.azul-m  { background: linear-gradient(135deg,#0d47a1,#1565c0); }
+  .kpi-card.roxo    { background: linear-gradient(135deg,#6a1b9a,#8e24aa); }
+  .kpi-card.cinza   { background: linear-gradient(135deg,#546e7a,#607d8b); }
+  .kpi-icon-big { font-size: 2rem; flex-shrink: 0; }
+  .kpi-texts {}
+  .kpi-label-sm { font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; opacity: 0.85; line-height: 1.3; }
+  .kpi-num { font-size: 1.6rem; font-weight: 800; line-height: 1.1; margin: 2px 0; }
+  .kpi-pct { font-size: 0.75rem; opacity: 0.85; }
+
+  /* ── GRID MEIO (2 colunas: Faixa etária + Raça/Cor) ── */
+  .mid-grid {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr;
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+
+  /* ── GRID BAIXO (Estado Civil + Escolaridade) ── */
+  .bot-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+
+  /* ── PANEL ── */
+  .panel {
+    background: white;
+    border-radius: 12px;
+    padding: 14px 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  }
+  .panel-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--azul);
+    margin-bottom: 10px;
+    padding-bottom: 7px;
+    border-bottom: 2px solid #edf1f5;
+  }
+  .panel-header .ph-icon { font-size: 1rem; }
+
+  /* ── MINI TABELA ── */
+  .mini-table { width: 100%; border-collapse: collapse; font-size: 0.71rem; }
+  .mini-table th {
+    background: #1a5276; color: white;
+    font-size: 0.66rem; font-weight: 700;
+    padding: 5px 8px; text-align: right;
+    white-space: nowrap;
+  }
+  .mini-table th:first-child { text-align: left; border-radius: 6px 0 0 0; }
+  .mini-table th:last-child  { border-radius: 0 6px 0 0; }
+  .mini-table td {
+    padding: 5px 8px;
+    border-bottom: 1px solid #f0f3f7;
+    white-space: nowrap;
+  }
+  .mini-table tr:last-child td { border-bottom: none; }
+  .mini-table .right { text-align: right; color: var(--cinza-sub); }
+  .mini-table .highlight td {
+    background: #e3f0fc;
+    font-weight: 700;
+    color: var(--azul);
+  }
+
+  /* ── NOTA ── */
+  .panel-note {
+    font-size: 0.67rem;
+    color: var(--cinza-sub);
+    background: #f7fafd;
+    border-left: 3px solid var(--azul-claro);
+    border-radius: 0 6px 6px 0;
+    padding: 6px 8px;
+    margin-top: 8px;
+    line-height: 1.4;
+  }
+  .panel-note strong { color: var(--azul); }
+
+  /* ── RESUMO ACHADOS ── */
+  .achados-list { list-style: none; display: flex; flex-direction: column; gap: 7px; margin-top: 4px; }
+  .achados-list li {
+    display: flex;
+    gap: 8px;
+    font-size: 0.74rem;
+    line-height: 1.45;
+    color: var(--cinza-texto);
+    padding: 7px 10px;
+    background: #f7fafd;
+    border-radius: 6px;
+    border-left: 3px solid var(--azul-claro);
+  }
+  .achados-list li .ach-icon { font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+  .achados-list li strong { color: var(--azul); }
+
+  .page-footer {
+    font-size: 0.67rem; color: #aaa; text-align: center;
+    padding: 8px 0 2px; border-top: 1px solid #edf1f5;
+  }
+
+  @media (max-width: 1024px) {
+    .kpi-row  { grid-template-columns: 1fr 1fr; }
+    .mid-grid { grid-template-columns: 1fr; }
+    .bot-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 768px) {
+    .kpi-row  { grid-template-columns: 1fr 1fr; }
+    .mid-grid { grid-template-columns: 1fr; }
+    .bot-grid { grid-template-columns: 1fr; }
+    .page-title-bar { flex-direction: column; gap: 6px; }
+    /* Faixa etária: stack chart e tabela */
+    .mid-grid .panel > div[style*="grid-template-columns:55%"] {
+      display: flex !important;
+      flex-direction: column;
+    }
+    /* Estado civil e escolaridade: stack */
+    .bot-grid .panel > div[style*="grid-template-columns:50%"] {
+      display: flex !important;
+      flex-direction: column;
+    }
+  }
+  @media (max-width: 480px) {
+    .kpi-row { grid-template-columns: 1fr; }
+    .kpi-num { font-size: 1.1rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <h1>Mortalidade por Neoplasias — Estado de São Paulo</h1>
+    <p>Análise epidemiológica, tendência temporal e distribuição espacial · Fonte: DATASUS / INCA</p>
+  </div>
+  <div class="header-badge">2013 – 2023</div>
+</div>
+
+<div class="layout">
+  <nav class="sidebar">
+    <a href="index.html"><span class="nav-icon">🏠</span>Visão Geral</a>
+    <a href="perfil.html" class="active"><span class="nav-icon">👥</span>Perfil Sociodemográfico</a>
+    <a href="temporal.html"><span class="nav-icon">📈</span>Análise Temporal</a>
+    <a href="tratamento.html"><span class="nav-icon">⏱️</span>Tempo Médio até Tratamento</a>
+    <a href="espacial.html"><span class="nav-icon">🗺️</span>Análise Espacial</a>
+    <div class="sidebar-footer">
+      <div class="periodo-label">Período de análise</div>
+      <div class="periodo-valor">2013 a 2023</div>
+    </div>
+  </nav>
+
+  <div class="content">
+
+    <!-- Título -->
+    <div class="page-title-bar">
+      <div>
+        <h2>Mortalidade por Neoplasias no Estado de São Paulo (2013–2023)</h2>
+        <p>Perfil sociodemográfico dos óbitos</p>
+      </div>
+      <div class="page-badge">ℹ️ Informações metodológicas</div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="kpi-row">
+      <div class="kpi-card azul">
+        <div class="kpi-icon-big">❤️</div>
+        <div class="kpi-texts">
+          <div class="kpi-label-sm">Total de óbitos<br>por neoplasias</div>
+          <div class="kpi-num">614.531</div>
+          <div class="kpi-pct">100% do total</div>
+        </div>
+      </div>
+      <div class="kpi-card azul-m">
+        <div class="kpi-icon-big">👨</div>
+        <div class="kpi-texts">
+          <div class="kpi-label-sm">Masculino</div>
+          <div class="kpi-num">322.179</div>
+          <div class="kpi-pct">(52,4%)</div>
+        </div>
+      </div>
+      <div class="kpi-card roxo">
+        <div class="kpi-icon-big">👩</div>
+        <div class="kpi-texts">
+          <div class="kpi-label-sm">Feminino</div>
+          <div class="kpi-num">292.331</div>
+          <div class="kpi-pct">(47,6%)</div>
+        </div>
+      </div>
+      <div class="kpi-card cinza">
+        <div class="kpi-icon-big">❓</div>
+        <div class="kpi-texts">
+          <div class="kpi-label-sm">Ignorado</div>
+          <div class="kpi-num">21</div>
+          <div class="kpi-pct">(0,003%)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LINHA MEIO: Faixa etária | Raça/Cor -->
+    <div class="mid-grid">
+
+      <!-- Faixa Etária -->
+      <div class="panel">
+        <div class="panel-header"><span class="ph-icon">📅</span> Faixa etária</div>
+        <div style="display:grid;grid-template-columns:55% 45%;gap:14px;align-items:center">
+          <div style="position:relative;height:190px">
+            <canvas id="chartIdade"></canvas>
+          </div>
+          <div>
+            <table class="mini-table">
+              <thead>
+                <tr>
+                  <th style="text-align:left">Faixa</th>
+                  <th style="text-align:right">Óbitos (n)</th>
+                  <th style="text-align:right">%</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td>Menor de 1 ano</td><td class="right">268</td><td class="right">0,04%</td></tr>
+                <tr><td>1 a 9 anos</td><td class="right">2.155</td><td class="right">0,35%</td></tr>
+                <tr><td>10 a 19 anos</td><td class="right">2.990</td><td class="right">0,48%</td></tr>
+                <tr><td>20 a 59 anos</td><td class="right">167.317</td><td class="right">27,23%</td></tr>
+                <tr class="highlight"><td>60 a 79 anos</td><td class="right">313.525</td><td class="right">51,03%</td></tr>
+                <tr><td>80 anos ou mais</td><td class="right">128.206</td><td class="right">20,86%</td></tr>
+                <tr><td>Ignorado</td><td class="right">70</td><td class="right">0,01%</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Raça/Cor — gráfico esquerda, tabela direita -->
+      <div class="panel">
+        <div class="panel-header"><span class="ph-icon">🧬</span> Raça/Cor</div>
+        <div style="display:flex;gap:12px;align-items:center">
+          <div style="position:relative;height:185px;width:185px;flex-shrink:0">
+            <canvas id="chartRaca"></canvas>
+          </div>
+          <div style="flex:1;min-width:0">
+            <table class="mini-table" style="font-size:0.68rem">
+              <thead>
+                <tr>
+                  <th style="text-align:left">Raça/Cor</th>
+                  <th style="text-align:right">n</th>
+                  <th style="text-align:right">%</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td><span style="color:#5dade2">■</span> Branca</td><td class="right">446.608</td><td class="right">72,7%</td></tr>
+                <tr><td><span style="color:#f39c12">■</span> Parda</td><td class="right">107.769</td><td class="right">17,5%</td></tr>
+                <tr><td><span style="color:#922b21">■</span> Preta</td><td class="right">37.308</td><td class="right">6,1%</td></tr>
+                <tr><td><span style="color:#f4d03f">■</span> Amarela</td><td class="right">9.603</td><td class="right">1,6%</td></tr>
+                <tr><td><span style="color:#1e8449">■</span> Indígena</td><td class="right">284</td><td class="right">0,0%</td></tr>
+                <tr><td><span style="color:#aab7c4">■</span> Ignorada</td><td class="right">12.959</td><td class="right">2,1%</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /mid-grid -->
+
+    <!-- LINHA BAIXO: Estado Civil | Escolaridade -->
+    <div class="bot-grid">
+
+      <!-- Estado Civil -->
+      <div class="panel">
+        <div class="panel-header"><span class="ph-icon">💍</span> Estado civil</div>
+        <div style="display:grid;grid-template-columns:50% 50%;gap:14px;align-items:center">
+          <div style="position:relative;height:175px">
+            <canvas id="chartEstadoCivil"></canvas>
+          </div>
+          <div>
+            <table class="mini-table">
+              <thead>
+                <tr>
+                  <th style="text-align:left">Estado Civil</th>
+                  <th style="text-align:right">Óbitos (n)</th>
+                  <th style="text-align:right">%</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td>Solteiro</td><td class="right">107.097</td><td class="right">17,43%</td></tr>
+                <tr class="highlight"><td>Casado</td><td class="right">276.735</td><td class="right">45,04%</td></tr>
+                <tr><td>Viúvo</td><td class="right">129.424</td><td class="right">21,06%</td></tr>
+                <tr><td>Separado</td><td class="right">62.286</td><td class="right">10,13%</td></tr>
+                <tr><td>Outro</td><td class="right">14.986</td><td class="right">2,44%</td></tr>
+                <tr><td>Ignorado</td><td class="right">24.003</td><td class="right">3,90%</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="panel-note">
+          <strong>Casados (45,0%) e viúvos (21,7%)</strong> concentram 66,1% dos óbitos.
+        </div>
+      </div>
+
+      <!-- Escolaridade -->
+      <div class="panel">
+        <div class="panel-header"><span class="ph-icon">🎓</span> Escolaridade</div>
+        <div style="display:grid;grid-template-columns:50% 50%;gap:14px;align-items:center">
+          <div style="position:relative;height:175px">
+            <canvas id="chartEscol"></canvas>
+          </div>
+          <div>
+            <table class="mini-table">
+              <thead>
+                <tr>
+                  <th style="text-align:left">Escolaridade</th>
+                  <th style="text-align:right">Óbitos (n)</th>
+                  <th style="text-align:right">%</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td>Nenhuma</td><td class="right">40.982</td><td class="right">6,67%</td></tr>
+                <tr><td>1 a 3 anos</td><td class="right">135.251</td><td class="right">22,01%</td></tr>
+                <tr class="highlight"><td>4 a 7 anos</td><td class="right">139.153</td><td class="right">22,64%</td></tr>
+                <tr><td>8 a 11 anos</td><td class="right">131.442</td><td class="right">21,39%</td></tr>
+                <tr><td>12 anos ou mais</td><td class="right">69.448</td><td class="right">11,30%</td></tr>
+                <tr><td>Ignorado</td><td class="right">98.255</td><td class="right">15,99%</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="panel-note">
+          <strong>Baixo e médio nível de escolaridade</strong> concentram 65% dos óbitos (excluindo ignorados).
+        </div>
+      </div>
+
+    </div><!-- /bot-grid -->
+
+    <!-- RESUMO — centralizado abaixo do bot-grid -->
+    <div style="display:flex;justify-content:center;margin-bottom:14px">
+      <div class="panel" style="max-width:480px;width:100%;padding:12px 16px">
+        <div class="panel-header" style="font-size:0.75rem;margin-bottom:8px"><span class="ph-icon">📋</span> Resumo dos principais achados</div>
+        <ul class="achados-list" style="gap:5px">
+          <li style="padding:4px 8px 4px 10px"><span class="ach-icon" style="font-size:0.8rem">📊</span><span style="font-size:0.72rem">Houve <strong>614.531 óbitos</strong> em SP entre 2013–2023, com predominância masculina <strong>(52,4%)</strong>.</span></li>
+          <li style="padding:4px 8px 4px 10px"><span class="ach-icon" style="font-size:0.8rem">👴</span><span style="font-size:0.72rem">Faixa de <strong>60 a 79 anos</strong> concentrou <strong>51,0%</strong> dos óbitos.</span></li>
+          <li style="padding:4px 8px 4px 10px"><span class="ach-icon" style="font-size:0.8rem">🎓</span><span style="font-size:0.72rem">Baixa/média escolaridade predomina: <strong>4 a 7 anos (22,6%)</strong> e <strong>1 a 3 anos (22,0%)</strong>.</span></li>
+          <li style="padding:4px 8px 4px 10px"><span class="ach-icon" style="font-size:0.8rem">👥</span><span style="font-size:0.72rem">Óbitos majoritariamente em brancos <strong>(72,7%)</strong>; casados e viúvos somam <strong>66,1%</strong>.</span></li>
+          <li style="padding:4px 8px 4px 10px"><span class="ach-icon" style="font-size:0.8rem">⚠️</span><span style="font-size:0.72rem">Proporção relevante de <strong>registros ignorados</strong> em diversas variáveis.</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="page-footer">
+      Fonte: DATASUS · SIM (Sistema de Informações sobre Mortalidade)
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /layout -->
+
+<script>
+const opt = {
+  responsive: true, maintainAspectRatio: false,
+  plugins: { legend: { display: false } }
+};
+
+/* Faixa Etária — barras horizontais */
+new Chart(document.getElementById('chartIdade'), {
+  type: 'bar',
+  data: {
+    labels: ['< 1 ano','1 a 9 anos','10 a 19 anos','20 a 59 anos','60 a 79 anos','80 anos ou mais','Ignorado'],
+    datasets: [{
+      data: [268, 2155, 2990, 167317, 313525, 128206, 70],
+      backgroundColor: ['#90caf9','#90caf9','#90caf9','#42a5f5','#1565c0','#1976d2','#b0bec5'],
+      borderRadius: 4
+    }]
+  },
+  options: {
+    ...opt,
+    indexAxis: 'y',
+    scales: {
+      x: { ticks: { font:{ size:9 }, callback: v => v >= 1000 ? (v/1000).toFixed(0)+'k' : v } },
+      y: { ticks: { font:{ size:9 }, maxTicksLimit: 8 } }
+    },
+    plugins: {
+      legend: { display: false },
+      tooltip: { callbacks: { label: c => ` ${c.raw.toLocaleString('pt-BR')} óbitos` } }
+    }
+  }
+});
+
+/* Raça/Cor — donut */
+new Chart(document.getElementById('chartRaca'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Branca','Parda','Preta','Amarela','Indígena','Ignorada'],
+    datasets: [{
+      data: [446608, 107769, 37308, 9603, 284, 12959],
+      backgroundColor: ['#5dade2','#f39c12','#922b21','#f4d03f','#1e8449','#aab7c4'],
+      borderWidth: 2, borderColor: '#fff'
+    }]
+  },
+  options: {
+    ...opt,
+    cutout: '62%',
+    plugins: {
+      legend: { display: false },
+      tooltip: { callbacks: { label: c => ` ${c.label}: ${c.raw.toLocaleString('pt-BR')} (${((c.raw/614531)*100).toFixed(1)}%)` } }
+    }
+  },
+  plugins: [{
+    id: 'center-text',
+    beforeDraw(chart) {
+      const { ctx, chartArea: { width, height, left, top } } = chart;
+      ctx.save();
+      ctx.font = 'bold 22px Segoe UI';
+      ctx.fillStyle = '#1a5276';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('72,7%', left + width / 2, top + height / 2 - 8);
+      ctx.font = '11px Segoe UI';
+      ctx.fillStyle = '#5d6d7e';
+      ctx.fillText('Branca', left + width / 2, top + height / 2 + 14);
+      ctx.restore();
+    }
+  }]
+});
+
+/* Estado Civil — barras horizontais */
+new Chart(document.getElementById('chartEstadoCivil'), {
+  type: 'bar',
+  data: {
+    labels: ['Solteiro','Casado','Viúvo','Separado','Outro','Ignorado'],
+    datasets: [{
+      data: [107097, 276735, 129424, 62286, 14986, 24003],
+      backgroundColor: ['#90caf9','#1565c0','#42a5f5','#90caf9','#b0bec5','#cfd8dc'],
+      borderRadius: 4
+    }]
+  },
+  options: {
+    ...opt,
+    indexAxis: 'y',
+    scales: {
+      x: { ticks: { font:{ size:9 }, callback: v => v >= 1000 ? (v/1000).toFixed(0)+'k' : v } },
+      y: { ticks: { font:{ size:9 } } }
+    }
+  }
+});
+
+/* Escolaridade — barras horizontais */
+new Chart(document.getElementById('chartEscol'), {
+  type: 'bar',
+  data: {
+    labels: ['Nenhuma','1–3 anos','4–7 anos','8–11 anos','12+ anos','Ignorado'],
+    datasets: [{
+      data: [40982, 135251, 139153, 131442, 69448, 98255],
+      backgroundColor: ['#ef9a9a','#ef5350','#c62828','#e57373','#a5d6a7','#b0bec5'],
+      borderRadius: 4
+    }]
+  },
+  options: {
+    ...opt,
+    indexAxis: 'y',
+    scales: {
+      x: { ticks: { font:{ size:9 }, callback: v => v >= 1000 ? (v/1000).toFixed(0)+'k' : v } },
+      y: { ticks: { font:{ size:9 } } }
+    }
+  }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Análise Espacial — Neoplasias SP</title>
+<link rel="stylesheet" href="styles.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  .page-title-bar {
+    background: white;
+    padding: 12px 18px 10px;
+    border-radius: 10px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+    margin-bottom: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+  .page-title-bar h2 { font-size: 1.05rem; font-weight: 800; color: var(--azul); }
+  .page-title-bar p  { font-size: 0.78rem; color: var(--cinza-sub); margin-top: 2px; }
+  .page-badge {
+    font-size: 0.68rem; color: var(--cinza-sub);
+    background: #f0f3f7; border: 1px solid #dde3eb;
+    border-radius: 20px; padding: 4px 12px; white-space: nowrap;
+  }
+
+  /* Moran cards */
+  .moran-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  .moran-card {
+    background: white;
+    border-radius: 10px;
+    padding: 12px 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    min-width: 230px;
+  }
+  .moran-globe { font-size: 2rem; flex-shrink: 0; }
+  .moran-body {}
+  .moran-titulo { font-size: 0.65rem; font-weight: 700; color: var(--azul); text-transform: uppercase; line-height: 1.3; margin-bottom: 4px; }
+  .moran-valor { font-size: 1.3rem; font-weight: 800; color: #1a3a5c; }
+  .moran-p { font-size: 0.65rem; color: var(--cinza-sub); margin-top: 2px; }
+  .moran-badge {
+    display: inline-block;
+    font-size: 0.6rem;
+    font-weight: 700;
+    background: #f0f3f7;
+    border: 1px solid #ccd;
+    border-radius: 20px;
+    padding: 2px 8px;
+    margin: 3px 0;
+    color: #555;
+  }
+  .moran-desc { font-size: 0.65rem; color: var(--cinza-sub); line-height: 1.4; margin-top: 3px; }
+
+  /* Layout principal: mapas + painel direito */
+  .espacial-main {
+    display: grid;
+    grid-template-columns: 1fr 240px;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  /* 4 mapas em grid 2x2 */
+  .mapas-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .mapa-panel {
+    background: white;
+    border-radius: 10px;
+    padding: 10px 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  }
+  .mapa-label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: var(--azul);
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .mapa-badge {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--azul);
+    color: white;
+    font-size: 0.6rem;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .mapa-img {
+    width: 100%;
+    border-radius: 6px;
+    display: block;
+  }
+  .mapa-img-placeholder {
+    width: 100%;
+    height: 180px;
+    background: #f0f3f7;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #aaa;
+    font-size: 0.7rem;
+    border: 2px dashed #dde3eb;
+  }
+
+  /* Painel direito — Principais achados */
+  .achados-panel {
+    background: white;
+    border-radius: 10px;
+    padding: 12px 14px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  }
+  .achados-title { font-size: 0.72rem; font-weight: 700; color: var(--azul); margin-bottom: 10px; border-bottom: 2px solid #edf1f5; padding-bottom: 6px; }
+  .achado-item {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    margin-bottom: 9px;
+    font-size: 0.68rem;
+    line-height: 1.45;
+    color: var(--cinza-texto);
+  }
+  .achado-dot {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  /* Linha inferior: tabela + mapa clusters */
+  .bottom-row {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  /* Tabela clusters */
+  .clusters-panel {
+    background: white;
+    border-radius: 10px;
+    padding: 12px 14px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  }
+  .clusters-title { font-size: 0.72rem; font-weight: 700; color: var(--azul); margin-bottom: 8px; }
+  .clusters-table { width: 100%; border-collapse: collapse; font-size: 0.7rem; }
+  .clusters-table th {
+    background: #1a5276;
+    color: white;
+    padding: 6px 8px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-align: center;
+    white-space: nowrap;
+  }
+  .clusters-table td { padding: 5px 8px; border-bottom: 1px solid #f0f3f7; text-align: center; }
+  .clusters-table tr:last-child td { border-bottom: none; }
+  .rr-alto  { background: #fdecea; color: #c0392b; font-weight: 700; border-radius: 4px; padding: 2px 6px; }
+  .rr-medio { background: #fef9e7; color: #d35400; font-weight: 700; border-radius: 4px; padding: 2px 6px; }
+  .rr-baixo { background: #eafaf1; color: #1e8449; font-weight: 700; border-radius: 4px; padding: 2px 6px; }
+  .clusters-note { font-size: 0.62rem; color: #aaa; margin-top: 6px; line-height: 1.4; }
+
+  /* Mapa clusters */
+  .cluster-mapa-panel {
+    background: white;
+    border-radius: 10px;
+    padding: 12px 14px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  }
+  .cluster-mapa-title { font-size: 0.72rem; font-weight: 700; color: var(--azul); margin-bottom: 8px; }
+  .legenda-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.66rem;
+    color: var(--cinza-texto);
+    margin-bottom: 4px;
+  }
+  .legenda-cor { width: 14px; height: 14px; border-radius: 3px; flex-shrink: 0; }
+  .cluster-nota {
+    margin-top: 8px;
+    background: #f7fafd;
+    border-left: 3px solid var(--azul-claro);
+    border-radius: 0 6px 6px 0;
+    padding: 6px 8px;
+    font-size: 0.65rem;
+    color: var(--cinza-texto);
+    line-height: 1.4;
+  }
+
+  .fonte-bar {
+    font-size: 0.62rem; color: #aaa;
+    padding: 8px 0 2px;
+    border-top: 1px solid #edf1f5;
+    text-align: center;
+  }
+
+  @media (max-width: 1024px) {
+    .espacial-main { grid-template-columns: 1fr; }
+    .bottom-row    { grid-template-columns: 1fr; }
+    .mapas-grid    { grid-template-columns: 1fr 1fr; }
+    .moran-row     { flex-wrap: wrap; }
+    .moran-card    { flex: 1; min-width: 220px; }
+    .achados-panel { width: 100%; }
+  }
+  @media (max-width: 768px) {
+    .espacial-main  { grid-template-columns: 1fr; }
+    .bottom-row     { grid-template-columns: 1fr; }
+    .mapas-grid     { grid-template-columns: 1fr; }
+    .moran-row      { flex-direction: column; }
+    .page-title-bar { flex-direction: column; gap: 6px; }
+    .clusters-table { min-width: 560px; }
+    .clusters-panel { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <h1>Mortalidade por Neoplasias — Estado de São Paulo</h1>
+    <p>Análise epidemiológica, tendência temporal e distribuição espacial · Fonte: DATASUS / INCA</p>
+  </div>
+  <div class="header-badge">2013 – 2023</div>
+</div>
+
+<div class="layout">
+  <nav class="sidebar">
+    <a href="index.html"><span class="nav-icon">🏠</span>Visão Geral</a>
+    <a href="perfil.html"><span class="nav-icon">👥</span>Perfil Sociodemográfico</a>
+    <a href="temporal.html"><span class="nav-icon">📈</span>Análise Temporal</a>
+    <a href="tratamento.html"><span class="nav-icon">⏱️</span>Tempo Médio até Tratamento</a>
+    <a href="espacial.html" class="active"><span class="nav-icon">🗺️</span>Análise Espacial</a>
+    <div class="sidebar-footer">
+      <div class="periodo-label">Período de análise</div>
+      <div class="periodo-valor">2013 a 2023</div>
+    </div>
+  </nav>
+
+  <div class="content">
+
+    <!-- Título -->
+    <div class="page-title-bar">
+      <div>
+        <h2>Mortalidade por Neoplasias no Estado de São Paulo (2013–2023)</h2>
+        <p>Análise Espacial</p>
+      </div>
+      <div class="page-badge">ℹ️ Informações metodológicas &nbsp;·&nbsp; Dados de 28/02/2026</div>
+    </div>
+
+    <!-- Cards Moran -->
+    <div class="moran-row">
+      <div class="moran-card">
+        <div class="moran-globe">🌐</div>
+        <div class="moran-body">
+          <div class="moran-titulo">Índice de Moran Global<br>Taxa de Mortalidade</div>
+          <div class="moran-valor">-0,00694</div>
+          <div class="moran-p">p = 0,395</div>
+          <span class="moran-badge">Não significativo</span>
+          <div class="moran-desc">Não há autocorrelação espacial global significativa.</div>
+        </div>
+      </div>
+      <div class="moran-card">
+        <div class="moran-globe">🌐</div>
+        <div class="moran-body">
+          <div class="moran-titulo">Índice de Moran Global<br>Mortalidade × Tempo de Espera</div>
+          <div class="moran-valor">-0,044</div>
+          <div class="moran-p">p = 0,310</div>
+          <span class="moran-badge">Não significativo</span>
+          <div class="moran-desc">Não há associação espacial global entre mortalidade e tempo de espera.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mapas + Achados -->
+    <div class="espacial-main">
+
+      <!-- 4 mapas -->
+      <div class="mapas-grid">
+        <div class="mapa-panel">
+          <div class="mapa-label"><span class="mapa-badge">A</span> Taxas Brutas <span style="font-weight:400;color:var(--cinza-sub)">(óbitos por 100 mil hab.)</span></div>
+          <img src="images/mapa-espacial-A.png" alt="Taxas Brutas" class="mapa-img" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          <div class="mapa-img-placeholder" style="display:none">Salve <strong>images/mapa-espacial-A.png</strong></div>
+        </div>
+        <div class="mapa-panel">
+          <div class="mapa-label"><span class="mapa-badge">B</span> Taxas Suavizadas <span style="font-weight:400;color:var(--cinza-sub)">(óbitos por 100 mil hab.)</span></div>
+          <img src="images/mapa-espacial-B.png" alt="Taxas Suavizadas" class="mapa-img" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          <div class="mapa-img-placeholder" style="display:none">Salve <strong>images/mapa-espacial-B.png</strong></div>
+        </div>
+        <div class="mapa-panel">
+          <div class="mapa-label"><span class="mapa-badge">C</span> Análise de Moran Local <span style="font-weight:400;color:var(--cinza-sub)">(Univariada)</span></div>
+          <img src="images/mapa-espacial-C.png" alt="Análise de Moran Local" class="mapa-img" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          <div class="mapa-img-placeholder" style="display:none">Salve <strong>images/mapa-espacial-C.png</strong></div>
+        </div>
+        <div class="mapa-panel">
+          <div class="mapa-label"><span class="mapa-badge">D</span> Análise de Moran Local <span style="font-weight:400;color:var(--cinza-sub)">(Bivariada: Mort. × Tempo)</span></div>
+          <img src="images/mapa-espacial-D.png" alt="Análise Bivariada" class="mapa-img" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          <div class="mapa-img-placeholder" style="display:none">Salve <strong>images/mapa-espacial-D.png</strong></div>
+        </div>
+      </div>
+
+      <!-- Principais achados -->
+      <div class="achados-panel">
+        <div class="achados-title">Principais achados</div>
+        <div class="achado-item">
+          <div class="achado-dot" style="background:#c0392b"></div>
+          <span>Maiores taxas de mortalidade concentram-se principalmente nas regiões <strong>Norte e Oeste</strong> do estado (taxas suavizadas).</span>
+        </div>
+        <div class="achado-item">
+          <div class="achado-dot" style="background:#c0392b"></div>
+          <span>Clusters <strong>Alto-Alto</strong> identificados no Noroeste, Nordeste e pontos do Oeste paulista.</span>
+        </div>
+        <div class="achado-item">
+          <div class="achado-dot" style="background:#2e86c1"></div>
+          <span>Clusters <strong>Baixo-Baixo</strong> predominam no Centro-Sul, com dispersões no Sudoeste e Nordeste.</span>
+        </div>
+        <div class="achado-item">
+          <div class="achado-dot" style="background:#2e86c1"></div>
+          <span>Não há associação espacial global entre mortalidade e tempo de espera para início do tratamento.</span>
+        </div>
+      </div>
+
+    </div><!-- /espacial-main -->
+
+    <!-- Tabela + Mapa clusters -->
+    <div class="bottom-row">
+
+      <div class="clusters-panel">
+        <div class="clusters-title">Aglomerados espaço-temporais de taxas anuais de mortalidade por neoplasias (2013–2023)</div>
+        <table class="clusters-table">
+          <thead>
+            <tr>
+              <th>Aglomerado</th>
+              <th>Período</th>
+              <th>Municípios</th>
+              <th>Mortes</th>
+              <th>Mortes esperadas</th>
+              <th>Taxa anual de mortalidade*</th>
+              <th>RR</th>
+              <th>LLR</th>
+              <th>p</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>1</strong></td><td>2019–2023</td><td>1</td>
+              <td>1.590</td><td>21,64</td><td>9.137,6</td>
+              <td><span class="rr-alto">73,65</span></td><td>5.265,53</td><td>0,001</td>
+            </tr>
+            <tr>
+              <td><strong>2</strong></td><td>2019–2023</td><td>246</td>
+              <td>60.193</td><td>51.918,09</td><td>144,2</td>
+              <td><span class="rr-baixo">1,18</span></td><td>688,12</td><td>0,001</td>
+            </tr>
+            <tr>
+              <td><strong>3</strong></td><td>2019–2023</td><td>1</td>
+              <td>361</td><td>26,27</td><td>1.709,0</td>
+              <td><span class="rr-alto">13,75</span></td><td>611,29</td><td>0,001</td>
+            </tr>
+            <tr>
+              <td><strong>4</strong></td><td>2019–2023</td><td>1</td>
+              <td>4.299</td><td>2.699,76</td><td>198,1</td>
+              <td><span class="rr-medio">1,60</span></td><td>402,83</td><td>0,001</td>
+            </tr>
+            <tr>
+              <td><strong>5</strong></td><td>2019–2023</td><td>19</td>
+              <td>6.581</td><td>5.390,23</td><td>151,9</td>
+              <td><span class="rr-baixo">1,22</span></td><td>123,95</td><td>0,001</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="clusters-note">
+          RR = risco relativo em comparação com o resto da região; LLR = razão de verossimilhança<br>
+          *Coeficiente de mortalidade por neoplasias (por 100 mil habitantes) durante o período de agrupamento.
+        </div>
+      </div>
+
+      <div class="cluster-mapa-panel">
+        <div class="cluster-mapa-title">Distribuição dos aglomerados espaço-temporais (2013–2023)</div>
+        <img src="images/mapa-clusters.png" alt="Mapa de Clusters" style="width:100%;border-radius:6px;display:block;margin-bottom:8px" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+        <div class="mapa-img-placeholder" style="display:none;height:140px">Salve <strong>images/mapa-clusters.png</strong> na pasta dashboard</div>
+        <div class="legenda-item"><div class="legenda-cor" style="background:#c0392b"></div>Cluster mais provável (RR mais alto)</div>
+        <div class="legenda-item"><div class="legenda-cor" style="background:#f0a500"></div>Clusters secundários (RR moderado) — 246 municípios</div>
+        <div class="legenda-item"><div class="legenda-cor" style="background:#f0f3f7;border:1px solid #ccc"></div>Não significativo</div>
+        <div class="cluster-nota">
+          Um cluster principal (vermelho) com RR extremamente elevado foi identificado em um único município próximo ao litoral (RR 73,65).<br><br>
+          Clusters secundários (laranja) abrangem 246 municípios distribuídos por grande parte do território paulista, com RR entre 1,18 e 13,75.
+        </div>
+      </div>
+
+    </div><!-- /bottom-row -->
+
+    <div class="fonte-bar">Fonte: SaTScan · Análise LISA (Anselin Local Moran's I) · SIM/DATASUS</div>
+
+  </div><!-- /content -->
+</div><!-- /layout -->
+
+</body>
+</html>

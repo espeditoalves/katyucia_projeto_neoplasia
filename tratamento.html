@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tempo Médio até Tratamento — Neoplasias SP</title>
+<link rel="stylesheet" href="styles.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+<style>
+  /* ── TÍTULO ── */
+  .page-title-bar {
+    background: white;
+    padding: 12px 18px 10px;
+    border-radius: 10px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+    margin-bottom: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+  .page-title-bar h2 { font-size: 1.05rem; font-weight: 800; color: var(--azul); }
+  .page-title-bar p  { font-size: 0.78rem; color: var(--cinza-sub); margin-top: 2px; }
+  .page-badge {
+    font-size: 0.68rem; color: var(--cinza-sub);
+    background: #f0f3f7; border: 1px solid #dde3eb;
+    border-radius: 20px; padding: 4px 12px; white-space: nowrap;
+  }
+
+  /* ── KPI CARDS ── */
+  .kpi-row {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .kpi-t {
+    background: #0e6b6b;
+    border-radius: 10px;
+    padding: 12px 14px;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 80px;
+  }
+  .kpi-t.alt { background: #0d5c5c; }
+  .kpi-t-icon { font-size: 1.6rem; flex-shrink: 0; }
+  .kpi-t-body {}
+  .kpi-t-label { font-size: 0.56rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; opacity: 0.85; line-height: 1.3; margin-bottom: 2px; }
+  .kpi-t-value { font-size: 1.15rem; font-weight: 800; line-height: 1.1; }
+  .kpi-t-sub   { font-size: 0.62rem; opacity: 0.8; line-height: 1.3; margin-top: 2px; }
+
+  /* ── GRID 3 COLUNAS ── */
+  .trat-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.4fr 1fr;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .panel {
+    background: white;
+    border-radius: 12px;
+    padding: 14px 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  }
+  .panel-title {
+    font-size: 0.73rem;
+    font-weight: 700;
+    color: var(--azul);
+    margin-bottom: 10px;
+    border-bottom: 2px solid #edf1f5;
+    padding-bottom: 6px;
+    line-height: 1.35;
+  }
+
+  /* ── DONUT + TABELA ── */
+  .donut-wrap { position: relative; height: 170px; max-width: 170px; margin: 0 auto 10px; }
+  .donut-table { width: 100%; border-collapse: collapse; font-size: 0.72rem; }
+  .donut-table th { background: #0e6b6b; color: white; padding: 5px 8px; font-size: 0.68rem; font-weight: 700; }
+  .donut-table td { padding: 5px 8px; border-bottom: 1px solid #f0f3f7; }
+  .donut-table tr:last-child td { border-bottom: none; font-weight: 700; background: #f7fafd; }
+  .donut-table .num { text-align: right; }
+  .donut-table .pct { text-align: right; }
+
+  .note-box {
+    margin-top: 8px;
+    background: #eaf6f6;
+    border-left: 3px solid #0e6b6b;
+    border-radius: 0 6px 6px 0;
+    padding: 6px 10px;
+    font-size: 0.68rem;
+    color: #145a5a;
+    line-height: 1.4;
+  }
+  .note-box.amarelo {
+    background: #fef9e7;
+    border-left-color: #d4a017;
+    color: #7d5c00;
+  }
+
+  /* ── HISTOGRAMA ── */
+  .hist-wrap { position: relative; height: 200px; }
+  .quartil-cards {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    margin-top: 10px;
+  }
+  .qcard {
+    background: #f0f8f8;
+    border: 1px solid #b2dfdb;
+    border-radius: 8px;
+    padding: 6px 8px;
+    text-align: center;
+  }
+  .qcard-label { font-size: 0.6rem; font-weight: 700; color: #0e6b6b; text-transform: uppercase; }
+  .qcard-value { font-size: 0.95rem; font-weight: 800; color: #0d3b3b; line-height: 1.2; margin-top: 2px; }
+  .qcard-sub   { font-size: 0.6rem; color: var(--cinza-sub); }
+
+  /* ── DESTAQUES ── */
+  .dest-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+  .dest-list li {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    font-size: 0.73rem;
+    line-height: 1.45;
+    color: var(--cinza-texto);
+  }
+  .dest-icon {
+    flex-shrink: 0;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: #0e6b6b;
+    color: white;
+    font-size: 0.65rem;
+    display: flex; align-items: center; justify-content: center;
+    margin-top: 1px;
+  }
+
+  .fonte-bar {
+    text-align: center;
+    font-size: 0.67rem;
+    color: #aaa;
+    padding: 8px 0 2px;
+    border-top: 1px solid #edf1f5;
+  }
+
+  @media (max-width: 1024px) {
+    .kpi-row   { grid-template-columns: repeat(3, 1fr); }
+    .trat-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 768px) {
+    .kpi-row       { grid-template-columns: repeat(2, 1fr); }
+    .trat-grid     { grid-template-columns: 1fr; }
+    .quartil-cards { grid-template-columns: repeat(2, 1fr); }
+    .page-title-bar { flex-direction: column; gap: 6px; }
+    .donut-wrap    { max-width: 200px; }
+  }
+  @media (max-width: 480px) {
+    .kpi-row     { grid-template-columns: 1fr 1fr; }
+    .kpi-t-value { font-size: 0.95rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <h1>Mortalidade por Neoplasias — Estado de São Paulo</h1>
+    <p>Análise epidemiológica, tendência temporal e distribuição espacial · Fonte: DATASUS / INCA</p>
+  </div>
+  <div class="header-badge">2013 – 2023</div>
+</div>
+
+<div class="layout">
+  <nav class="sidebar">
+    <a href="index.html"><span class="nav-icon">🏠</span>Visão Geral</a>
+    <a href="perfil.html"><span class="nav-icon">👥</span>Perfil Sociodemográfico</a>
+    <a href="temporal.html"><span class="nav-icon">📈</span>Análise Temporal</a>
+    <a href="tratamento.html" class="active"><span class="nav-icon">⏱️</span>Tempo Médio até Tratamento</a>
+    <a href="espacial.html"><span class="nav-icon">🗺️</span>Análise Espacial</a>
+    <div class="sidebar-footer">
+      <div class="periodo-label">Período de análise</div>
+      <div class="periodo-valor">2013 a 2023</div>
+    </div>
+  </nav>
+
+  <div class="content">
+
+    <!-- Título -->
+    <div class="page-title-bar">
+      <div>
+        <h2>Tempo Médio até Início do Tratamento Oncológico</h2>
+        <p>Estado de São Paulo (2013–2023)</p>
+      </div>
+      <div class="page-badge">ℹ️ Informações metodológicas &nbsp;·&nbsp; Dados de 28/02/2026</div>
+    </div>
+
+    <!-- 6 KPI cards -->
+    <div class="kpi-row">
+      <div class="kpi-t">
+        <div class="kpi-t-icon">🕐</div>
+        <div class="kpi-t-body">
+          <div class="kpi-t-label">Tempo Médio (Dias)</div>
+          <div class="kpi-t-value">128,3</div>
+          <div class="kpi-t-sub">dias</div>
+        </div>
+      </div>
+      <div class="kpi-t alt">
+        <div class="kpi-t-icon">📊</div>
+        <div class="kpi-t-body">
+          <div class="kpi-t-label">Mediana (Dias)</div>
+          <div class="kpi-t-value">127,3</div>
+          <div class="kpi-t-sub">dias</div>
+        </div>
+      </div>
+      <div class="kpi-t">
+        <div class="kpi-t-icon">⬇️</div>
+        <div class="kpi-t-body">
+          <div class="kpi-t-label">Mínimo (Dias)</div>
+          <div class="kpi-t-value">&lt; 60</div>
+          <div class="kpi-t-sub">dias</div>
+        </div>
+      </div>
+      <div class="kpi-t alt">
+        <div class="kpi-t-icon">⬆️</div>
+        <div class="kpi-t-body">
+          <div class="kpi-t-label">Máximo (Dias)</div>
+          <div class="kpi-t-value">262</div>
+          <div class="kpi-t-sub">dias</div>
+        </div>
+      </div>
+      <div class="kpi-t">
+        <div class="kpi-t-icon">↔️</div>
+        <div class="kpi-t-body">
+          <div class="kpi-t-label">Amplitude (Dias)</div>
+          <div class="kpi-t-value">&lt;60 a 262</div>
+          <div class="kpi-t-sub">dias</div>
+        </div>
+      </div>
+      <div class="kpi-t alt">
+        <div class="kpi-t-icon">📈</div>
+        <div class="kpi-t-body">
+          <div class="kpi-t-label">Distribuição</div>
+          <div class="kpi-t-sub" style="font-size:0.68rem;opacity:1">Relativamente homogênea entre os municípios</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3 colunas -->
+    <div class="trat-grid">
+
+      <!-- Col 1: Donut + tabela -->
+      <div class="panel">
+        <div class="panel-title">Distribuição dos municípios por faixas de tempo de espera até o início do tratamento oncológico</div>
+        <div class="donut-wrap"><canvas id="chartDonut"></canvas></div>
+        <table class="donut-table">
+          <thead><tr><th>Faixa de tempo (dias)</th><th class="num">Municípios</th><th class="pct">%</th></tr></thead>
+          <tbody>
+            <tr><td><span style="color:#27ae60">●</span> &lt; 60</td><td class="num">2</td><td class="pct">&lt; 0,5%</td></tr>
+            <tr><td><span style="color:#5dade2">●</span> 60 – 113</td><td class="num">120</td><td class="pct">25,0%</td></tr>
+            <tr><td><span style="color:#0e6b6b">●</span> 113 – 141</td><td class="num">240</td><td class="pct">50,0%</td></tr>
+            <tr><td><span style="color:#1a9090">●</span> 141 – 262</td><td class="num">118</td><td class="pct">24,5%</td></tr>
+            <tr><td><strong>Total</strong></td><td class="num"><strong>480</strong></td><td class="pct"><strong>100%</strong></td></tr>
+          </tbody>
+        </table>
+        <div class="note-box">Apenas 2 municípios (Ribeira e Coronel Macedo) tiveram tempo médio inferior a 60 dias, representando menos de 0,5% do total analisado.</div>
+        <div class="note-box" style="margin-top:6px">25% dos municípios apresentam tempo inferior a 113 dias e 75% estão acima de 141 dias.</div>
+        <div class="note-box amarelo" style="margin-top:6px">⚠️ A quase totalidade dos municípios não cumpre o prazo estabelecido pela legislação brasileira para início do tratamento oncológico.</div>
+      </div>
+
+      <!-- Col 2: Histograma -->
+      <div class="panel">
+        <div class="panel-title">Distribuição dos tempos médios de espera (dias) entre os municípios</div>
+        <div class="hist-wrap"><canvas id="chartHist"></canvas></div>
+        <div class="quartil-cards">
+          <div class="qcard">
+            <div class="qcard-label">Q1 (25%)</div>
+            <div class="qcard-value">113 dias</div>
+          </div>
+          <div class="qcard">
+            <div class="qcard-label">Mediana</div>
+            <div class="qcard-value">127,3 dias</div>
+          </div>
+          <div class="qcard">
+            <div class="qcard-label">Q3 (75%)</div>
+            <div class="qcard-value">141 dias</div>
+          </div>
+          <div class="qcard">
+            <div class="qcard-label">Amplitude</div>
+            <div class="qcard-value" style="font-size:0.8rem">&lt;60 a 262 dias</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Col 3: Destaques -->
+      <div class="panel">
+        <div class="panel-title">Principais destaques</div>
+        <ul class="dest-list">
+          <li>
+            <span class="dest-icon">✓</span>
+            <span>O tempo médio para início do tratamento oncológico no estado de São Paulo é de <strong>128,3 dias</strong>, com mediana de <strong>127,3 dias</strong>.</span>
+          </li>
+          <li>
+            <span class="dest-icon">✓</span>
+            <span>A distribuição dos tempos de espera é <strong>relativamente homogênea</strong>, sem grande influência de valores extremos, variando de &lt; 60 dias até 262 dias.</span>
+          </li>
+          <li>
+            <span class="dest-icon">✓</span>
+            <span>Apenas <strong>2 municípios</strong> registraram tempo médio inferior a 60 dias, representando menos de <strong>0,5%</strong> do total analisado.</span>
+          </li>
+          <li>
+            <span class="dest-icon">✓</span>
+            <span><strong>25%</strong> dos municípios apresentam tempo médio inferior a <strong>113 dias</strong>.</span>
+          </li>
+          <li>
+            <span class="dest-icon">✓</span>
+            <span><strong>75%</strong> dos municípios têm tempo de espera abaixo de <strong>141 dias</strong>, concentrando-se em faixas intermediárias e elevadas.</span>
+          </li>
+          <li>
+            <span class="dest-icon">✓</span>
+            <span>O cenário evidencia <strong>desigualdades importantes</strong> no acesso oportuno aos serviços de saúde no estado.</span>
+          </li>
+        </ul>
+      </div>
+
+    </div><!-- /trat-grid -->
+
+    <div class="fonte-bar">Fontes: INCA – Estimativa 2023: Incidência de Câncer no Brasil &nbsp;|&nbsp; DATASUS &nbsp;|&nbsp; SIH/SUS</div>
+
+  </div><!-- /content -->
+</div><!-- /layout -->
+
+<script>
+const tealPalette = ['#27ae60','#5dade2','#0e6b6b','#1a9090'];
+
+/* Donut */
+new Chart(document.getElementById('chartDonut'), {
+  type: 'doughnut',
+  data: {
+    labels: ['< 60 dias','60–113 dias','113–141 dias','141–262 dias'],
+    datasets: [{ data: [2, 120, 240, 118], backgroundColor: tealPalette, borderWidth: 2, borderColor: '#fff' }]
+  },
+  plugins: [ChartDataLabels, {
+    id: 'centerText',
+    beforeDraw(chart) {
+      const { ctx, chartArea: { width, height, top } } = chart;
+      ctx.save();
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      const cx = width / 2, cy = top + height / 2;
+      ctx.font = 'bold 13px Segoe UI, Arial';
+      ctx.fillStyle = '#0d3b3b';
+      ctx.fillText('Total de', cx, cy - 10);
+      ctx.fillText('municípios', cx, cy + 4);
+      ctx.font = 'bold 11px Segoe UI, Arial';
+      ctx.fillStyle = '#0e6b6b';
+      ctx.fillText('480', cx, cy + 20);
+      ctx.restore();
+    }
+  }],
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    cutout: '62%',
+    plugins: {
+      legend: { display: false },
+      tooltip: { callbacks: { label: c => ` ${c.label}: ${c.raw} (${(c.raw/480*100).toFixed(1)}%)` } },
+      datalabels: {
+        color: '#fff',
+        font: { size: 11, weight: 'bold' },
+        formatter: (value) => {
+          const pct = (value / 480 * 100).toFixed(1);
+          return pct < 1 ? '<1%' : pct + '%';
+        },
+        display: (ctx) => ctx.dataset.data[ctx.dataIndex] >= 8
+      }
+    }
+  }
+});
+
+/* Histograma */
+const histLabels = ['<60','60-80','80-100','100-120','120-140','140-160','160-180','180-200','200-220','220-240','240-262'];
+const histData   = [2, 8, 22, 58, 110, 130, 80, 42, 16, 8, 4];
+
+new Chart(document.getElementById('chartHist'), {
+  type: 'bar',
+  data: {
+    labels: histLabels,
+    datasets: [{
+      label: 'Número de municípios',
+      data: histData,
+      backgroundColor: histData.map((_, i) => {
+        if (i <= 1) return '#27ae60';
+        if (i <= 3) return '#5dade2';
+        if (i <= 5) return '#0e6b6b';
+        return '#1a9090';
+      }),
+      borderRadius: 3,
+      borderSkipped: false
+    }]
+  },
+  plugins: [{
+    id: 'quartilLines',
+    afterDraw(chart) {
+      const { ctx, scales: { x, y } } = chart;
+      const lines = [
+        { xVal: 3.2, label: 'Q1\n113 dias', color: '#27ae60' },
+        { xVal: 4.5, label: 'Mediana\n127,3 dias', color: '#0e6b6b' },
+        { xVal: 5.8, label: 'Q3\n141 dias', color: '#c0392b' },
+      ];
+      lines.forEach(({ xVal, label, color }) => {
+        const xPx = x.getPixelForValue(xVal);
+        ctx.save();
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([4, 3]);
+        ctx.beginPath();
+        ctx.moveTo(xPx, y.top);
+        ctx.lineTo(xPx, y.bottom);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.font = 'bold 9px Segoe UI, Arial';
+        ctx.fillStyle = color;
+        ctx.textAlign = 'center';
+        label.split('\n').forEach((t, i) => ctx.fillText(t, xPx, y.top + 10 + i * 10));
+        ctx.restore();
+      });
+    }
+  }],
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { ticks: { font: { size: 9 }, maxRotation: 45 }, title: { display: true, text: 'Tempo médio de espera (dias)', font: { size: 10 } } },
+      y: { title: { display: true, text: 'Número de municípios', font: { size: 10 } }, ticks: { font: { size: 10 } } }
+    }
+  }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Visão Geral — Neoplasias SP</title>
+<link rel="stylesheet" href="styles.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+<style>
+  /* ── PÁGINA TÍTULO ── */
+  .page-title-bar {
+    background: white;
+    padding: 14px 24px 10px;
+    border-bottom: 1px solid #dde3eb;
+    margin-bottom: 20px;
+    border-radius: 10px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+  }
+  .page-title-bar h2 {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--azul);
+  }
+  .page-title-bar p {
+    font-size: 0.78rem;
+    color: var(--cinza-sub);
+    margin-top: 2px;
+  }
+  .page-title-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+  .page-badge {
+    font-size: 0.7rem;
+    color: var(--cinza-sub);
+    background: #f0f3f7;
+    border: 1px solid #dde3eb;
+    border-radius: 20px;
+    padding: 4px 12px;
+    white-space: nowrap;
+  }
+
+  /* ── CARDS COLORIDOS ── */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+  .kpi {
+    border-radius: 12px;
+    padding: 16px 16px 14px;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-height: 130px;
+    position: relative;
+    overflow: hidden;
+  }
+  .kpi::after {
+    content: '';
+    position: absolute;
+    bottom: -20px; right: -20px;
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.08);
+  }
+  .kpi-1 { background: linear-gradient(135deg,#1565c0,#1976d2); }
+  .kpi-2 { background: linear-gradient(135deg,#0d3b6e,#1a5276); }
+  .kpi-3 { background: linear-gradient(135deg,#6a1b9a,#7b1fa2); }
+  .kpi-4 { background: linear-gradient(135deg,#00695c,#00796b); }
+
+  .kpi-label {
+    font-size: 0.62rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    opacity: 0.85;
+    line-height: 1.3;
+  }
+  .kpi-icon {
+    font-size: 1.5rem;
+    margin-bottom: 2px;
+  }
+  .kpi-value {
+    font-size: 1.55rem;
+    font-weight: 800;
+    line-height: 1.1;
+    margin-top: 4px;
+  }
+  .kpi-value span {
+    font-size: 0.85rem;
+    font-weight: 400;
+    opacity: 0.85;
+  }
+  .kpi-sub {
+    font-size: 0.7rem;
+    opacity: 0.8;
+    line-height: 1.4;
+    margin-top: 2px;
+  }
+
+  /* ── GRID 3 COLUNAS ── */
+  .bottom-grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .panel {
+    background: white;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+  }
+  .panel-title {
+    font-size: 0.77rem;
+    font-weight: 700;
+    color: var(--azul);
+    margin-bottom: 12px;
+    line-height: 1.3;
+    border-bottom: 2px solid #edf1f5;
+    padding-bottom: 8px;
+  }
+  .panel-sub {
+    font-size: 0.68rem;
+    color: var(--cinza-sub);
+    margin-bottom: 10px;
+  }
+
+  /* Tabela de tipos */
+  .tipos-table { width: 100%; border-collapse: collapse; font-size: 0.76rem; }
+  .tipos-table th {
+    background: none;
+    border-radius: 0;
+    color: var(--cinza-sub);
+    font-size: 0.7rem;
+    padding: 4px 6px 8px;
+    border-bottom: 2px solid #edf1f5;
+    text-align: center;
+  }
+  .tipos-table td { padding: 6px 6px; border-bottom: 1px solid #f4f6f8; text-align: center; }
+  .tipos-table tr:last-child td { border-bottom: none; }
+  .tipos-table .pos {
+    font-weight: 800;
+    color: var(--azul);
+    width: 24px;
+  }
+  .tipos-table .tipo-nome { text-align: left; font-weight: 500; }
+  .pos-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    font-size: 0.68rem;
+    font-weight: 800;
+  }
+  .pb1 { background:#ffd700; color:#7d5c00; }
+  .pb2 { background:#c0c0c0; color:#444; }
+  .pb3 { background:#cd7f32; color:#fff; }
+  .pb4 { background:#dde3eb; color:#444; }
+  .pb5 { background:#dde3eb; color:#444; }
+
+  .tipos-col-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 6px 0 4px;
+    margin-bottom: 4px;
+  }
+
+  /* Destaques */
+  .destaque-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+  .destaque-list li {
+    font-size: 0.76rem;
+    line-height: 1.45;
+    color: var(--cinza-texto);
+    padding: 8px 10px 8px 14px;
+    border-left: 3px solid var(--azul-claro);
+    background: #f7fafd;
+    border-radius: 0 6px 6px 0;
+  }
+  .destaque-list li strong { color: var(--azul); }
+
+  /* FOOTER */
+  .page-footer {
+    font-size: 0.68rem;
+    color: #95a5a6;
+    text-align: center;
+    padding: 10px 0 4px;
+    border-top: 1px solid #edf1f5;
+    margin-top: 4px;
+  }
+
+  @media (max-width: 1024px) {
+    .kpi-grid    { grid-template-columns: 1fr 1fr; }
+    .bottom-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 768px) {
+    .kpi-grid    { grid-template-columns: 1fr 1fr; }
+    .kpi-value   { font-size: 1.2rem; }
+    .bottom-grid { grid-template-columns: 1fr; }
+    .page-title-bar { flex-direction: column; gap: 6px; }
+    .page-badge  { font-size: 0.62rem; }
+  }
+  @media (max-width: 480px) {
+    .kpi-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <h1>Mortalidade por Neoplasias — Estado de São Paulo</h1>
+    <p>Análise epidemiológica, tendência temporal e distribuição espacial · Fonte: DATASUS / INCA</p>
+  </div>
+  <div class="header-badge">2013 – 2023</div>
+</div>
+
+<div class="layout">
+  <nav class="sidebar">
+    <a href="index.html" class="active">
+      <span class="nav-icon">🏠</span>
+      Visão Geral
+    </a>
+    <a href="perfil.html">
+      <span class="nav-icon">👥</span>
+      Perfil Sociodemográfico
+    </a>
+    <a href="temporal.html">
+      <span class="nav-icon">📈</span>
+      Análise Temporal
+    </a>
+    <a href="tratamento.html">
+      <span class="nav-icon">⏱️</span>
+      Tempo Médio até Tratamento
+    </a>
+    <a href="espacial.html">
+      <span class="nav-icon">🗺️</span>
+      Análise Espacial
+    </a>
+    <div class="sidebar-footer">
+      <div class="periodo-label">Período de análise</div>
+      <div class="periodo-valor">2013 a 2023</div>
+    </div>
+  </nav>
+
+  <div class="content">
+
+    <!-- Título da página -->
+    <div class="page-title-bar">
+      <div class="page-title-top">
+        <div>
+          <h2>Neoplasias no Estado de São Paulo (2013–2023)</h2>
+          <p>Visão Geral</p>
+        </div>
+        <div class="page-badge">📋 Informações metodológicas &nbsp;·&nbsp; Dados DATASUS / INCA</div>
+      </div>
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="kpi-grid">
+      <div class="kpi kpi-1">
+        <div class="kpi-icon">🔬</div>
+        <div class="kpi-label">Casos Novos Estimados<br>no Estado de São Paulo</div>
+        <div class="kpi-value">150 mil a<br>180 mil <span>casos novos por ano</span></div>
+        <div class="kpi-sub">Total no período (2013–2023)<br>= 1,6 a 1,8 milhão</div>
+      </div>
+      <div class="kpi kpi-2">
+        <div class="kpi-icon">🏥</div>
+        <div class="kpi-label">Internações Estimadas<br>no Estado de São Paulo</div>
+        <div class="kpi-value">200 mil a<br>300 mil <span>internações por ano</span></div>
+        <div class="kpi-sub">Total no período (2013–2023)<br>= 2,2 a 3 milhões</div>
+      </div>
+      <div class="kpi kpi-3">
+        <div class="kpi-icon">🎗️</div>
+        <div class="kpi-label">Óbitos por Neoplasias<br>no Estado de São Paulo</div>
+        <div class="kpi-value">614.531</div>
+        <div class="kpi-sub">óbitos no período (2013–2023)<br>Fonte: DATASUS</div>
+      </div>
+      <div class="kpi kpi-4">
+        <div class="kpi-icon">🗺️</div>
+        <div class="kpi-label">Participação de SP<br>no Brasil (casos novos)</div>
+        <div class="kpi-value">≈ 70%</div>
+        <div class="kpi-sub">dos casos novos de câncer<br>concentram-se no Sul e Sudeste</div>
+      </div>
+    </div>
+
+    <!-- 3 colunas -->
+    <div class="bottom-grid">
+
+      <!-- Col 1: Gráfico de barras -->
+      <div class="panel">
+        <div class="panel-title">Estimativa de casos novos de câncer no Estado de São Paulo (2013–2023)</div>
+        <div class="panel-sub">Casos novos estimados por ano</div>
+        <div style="position:relative;height:210px">
+          <canvas id="chartCasos"></canvas>
+        </div>
+        <div style="font-size:0.62rem;color:#aaa;margin-top:8px">
+          *Estimativas anuais baseadas no Relatório Estimativa 2023: Incidência de Câncer no Brasil (INCA).
+        </div>
+      </div>
+
+      <!-- Col 2: Tabela de tipos -->
+      <div class="panel">
+        <div class="panel-title">Tipos de câncer mais frequentes<br>(estimativa de incidência)</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0">
+          <div>
+            <div class="tipos-col-header" style="color:var(--azul-claro)">♂ Homens</div>
+            <table class="tipos-table">
+              <thead><tr><th>Pos.</th><th class="tipo-nome" style="text-align:left">Tipo de câncer</th></tr></thead>
+              <tbody>
+                <tr><td><span class="pos-badge pb1">1º</span></td><td class="tipo-nome">Próstata</td></tr>
+                <tr><td><span class="pos-badge pb2">2º</span></td><td class="tipo-nome">Cólon e reto</td></tr>
+                <tr><td><span class="pos-badge pb3">3º</span></td><td class="tipo-nome">Pulmão</td></tr>
+                <tr><td><span class="pos-badge pb4">4º</span></td><td class="tipo-nome">Estômago</td></tr>
+                <tr><td><span class="pos-badge pb5">5º</span></td><td class="tipo-nome">Cavidade oral</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div>
+            <div class="tipos-col-header" style="color:var(--vermelho)">♀ Mulheres</div>
+            <table class="tipos-table">
+              <thead><tr><th>Pos.</th><th class="tipo-nome" style="text-align:left">Tipo de câncer</th></tr></thead>
+              <tbody>
+                <tr><td><span class="pos-badge pb1">1º</span></td><td class="tipo-nome">Mama feminina</td></tr>
+                <tr><td><span class="pos-badge pb2">2º</span></td><td class="tipo-nome">Cólon e reto</td></tr>
+                <tr><td><span class="pos-badge pb3">3º</span></td><td class="tipo-nome">Colo do útero</td></tr>
+                <tr><td><span class="pos-badge pb4">4º</span></td><td class="tipo-nome">Pulmão</td></tr>
+                <tr><td><span class="pos-badge pb5">5º</span></td><td class="tipo-nome">Tireoide</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div style="font-size:0.68rem;color:var(--cinza-sub);margin-top:12px;padding-top:8px;border-top:1px solid #edf1f5;line-height:1.4">
+          Considerando ambos os sexos, os cânceres de <strong>mama</strong>, <strong>próstata</strong> e <strong>colorretal</strong> estão entre os mais prevalentes no estado.
+        </div>
+      </div>
+
+      <!-- Col 3: Destaques -->
+      <div class="panel">
+        <div class="panel-title">Principais destaques</div>
+        <ul class="destaque-list">
+          <li>São Paulo concentra cerca de <strong>70% dos casos novos</strong> de câncer do Brasil (regiões Sul e Sudeste).</li>
+          <li>Estimam-se entre <strong>150 mil e 180 mil casos novos por ano</strong> no estado, totalizando entre 1,6 e 1,8 milhão de casos no período de 2013 a 2023.</li>
+          <li>As internações relacionadas ao câncer variam entre <strong>200 mil e 300 mil por ano</strong>, totalizando entre 2,2 e 3 milhões no período.</li>
+          <li>Foram registrados <strong>614.531 óbitos</strong> por neoplasias entre 2013 e 2023 (Fonte: DATASUS).</li>
+          <li>Os cânceres de <strong>mama</strong> (mulheres), <strong>próstata</strong> (homens) e <strong>colorretal</strong> estão entre os mais frequentes no estado.</li>
+        </ul>
+      </div>
+
+    </div><!-- /bottom-grid -->
+
+    <div class="page-footer">
+      Fonte: INCA – Estimativa 2023: Incidência de Câncer no Brasil &nbsp;|&nbsp; DATASUS
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /layout -->
+
+<script>
+new Chart(document.getElementById('chartCasos'), {
+  plugins: [ChartDataLabels],
+  type: 'bar',
+  data: {
+    labels: ['2013','2014','2015','2016','2017','2018','2019','2020','2021','2022','2023'],
+    datasets: [{
+      data: [150,154,158,160,163,166,169,171,174,177,180],
+      backgroundColor: '#2e86c1',
+      borderRadius: 4,
+      borderSkipped: false
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: { callbacks: { label: c => ` ${c.raw} mil` } },
+      datalabels: {
+        anchor: 'end',
+        align: 'end',
+        formatter: v => v + ' mil',
+        font: { size: 9, weight: '600' },
+        color: '#1a3a5c'
+      }
+    },
+    scales: {
+      x: { ticks: { font: { size: 10 } } },
+      y: {
+        min: 130,
+        max: 200,
+        ticks: {
+          font: { size: 10 },
+          callback: v => v + ' mil'
+        }
+      }
+    },
+    layout: { padding: { top: 18 } }
+  }
+});
+</script>
+</body>
+</html>
