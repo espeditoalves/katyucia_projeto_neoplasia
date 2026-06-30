@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Análise Temporal — Neoplasias SP</title>
 <link rel="stylesheet" href="styles.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
   .page-title-bar {
     background: white;
@@ -191,7 +192,7 @@
     <div class="figura">
       <div class="fig-chart">
         <div class="fig-title">Figura 1. Tendência temporal da taxa de mortalidade por neoplasias de 2013 a 2023, São Paulo, Brasil.</div>
-        <div class="fig-canvas"><img src="images/grafico-temporal-total.png" alt="Figura 1" style="width:100%;height:100%;object-fit:contain;display:block"></div>
+        <div class="fig-canvas"><canvas id="chartTotal"></canvas></div>
       </div>
       <div class="fig-info">
         <div class="info-card">
@@ -211,12 +212,12 @@
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
             <div style="text-align:center;padding:8px;background:#e8f4fd;border-radius:8px">
               <div style="font-size:0.6rem;font-weight:700;color:#555;text-transform:uppercase">Taxa 2013</div>
-              <div style="font-size:1.1rem;font-weight:800;color:#1a3a5c">113,7</div>
+              <div style="font-size:1.1rem;font-weight:800;color:#1a3a5c">115,1</div>
               <div style="font-size:0.6rem;color:var(--cinza-sub)">por 100 mil hab.</div>
             </div>
             <div style="text-align:center;padding:8px;background:#fdeaed;border-radius:8px">
               <div style="font-size:0.6rem;font-weight:700;color:#555;text-transform:uppercase">Taxa 2023</div>
-              <div style="font-size:1.1rem;font-weight:800;color:#c0392b">135,7</div>
+              <div style="font-size:1.1rem;font-weight:800;color:#c0392b">135,6</div>
               <div style="font-size:0.6rem;color:var(--cinza-sub)">por 100 mil hab.</div>
             </div>
           </div>
@@ -228,7 +229,7 @@
     <div class="figura">
       <div class="fig-chart">
         <div class="fig-title">Figura 2. Tendência temporal da taxa de mortalidade por neoplasias segundo sexo de 2013 a 2023, São Paulo, Brasil.</div>
-        <div class="fig-canvas"><img src="images/grafico-temporal-sexo.png" alt="Figura 2" style="width:100%;height:100%;object-fit:contain;display:block"></div>
+        <div class="fig-canvas"><canvas id="chartSexo"></canvas></div>
       </div>
       <div class="fig-info">
         <div class="apc-sex-card">
@@ -267,5 +268,95 @@
   </div><!-- /content -->
 </div><!-- /layout -->
 
+<script>
+const anos = ['2013','2014','2015','2016','2017','2018','2019','2020','2021','2022','2023'];
+const totalObs  = [115.08,116.04,119.61,121.06,123.31,125.12,130.13,122.37,127.89,130.88,135.64];
+const totalTend = [115.56,117.23,118.93,120.65,122.40,124.18,125.98,127.80,129.66,131.54,133.44];
+const mascObs   = [126.88,127.63,131.44,128.63,132.95,135.62,140.83,130.49,136.97,138.88,143.30];
+const mascTend  = [127.02,128.37,129.73,131.11,132.50,133.91,135.33,136.77,138.23,139.69,141.18];
+const femObs    = [103.93,105.11,108.45,109.86,114.22,115.22,120.02,114.71,119.34,123.36,128.45];
+const femTend   = [104.03,106.06,108.13,110.24,112.40,114.59,116.83,119.11,121.43,123.80,126.22];
+
+const baseOpt = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: { legend: { labels: { font: { size: 11 }, boxWidth: 24, padding: 10 } } },
+  scales: {
+    x: { ticks: { font: { size: 10 } } },
+    y: { ticks: { font: { size: 10 }, callback: v => v.toFixed(1) } }
+  }
+};
+
+/* Gráfico 1 — Total */
+new Chart(document.getElementById('chartTotal'), {
+  type: 'line',
+  data: {
+    labels: anos,
+    datasets: [
+      {
+        label: 'Taxa observada',
+        data: totalObs,
+        borderColor: '#f39c12',
+        backgroundColor: 'rgba(243,156,18,0.1)',
+        fill: false,
+        tension: 0.3,
+        pointRadius: 4,
+        pointBackgroundColor: '#f39c12',
+        borderWidth: 2
+      },
+      {
+        label: 'Tendência ajustada',
+        data: totalTend,
+        borderColor: '#8e44ad',
+        borderDash: [6, 4],
+        fill: false,
+        tension: 0,
+        pointRadius: 0,
+        borderWidth: 2
+      }
+    ]
+  },
+  options: { ...baseOpt, scales: { ...baseOpt.scales, y: { ...baseOpt.scales.y, min: 108 } } }
+});
+
+/* Gráfico 2 — Por sexo */
+new Chart(document.getElementById('chartSexo'), {
+  type: 'line',
+  data: {
+    labels: anos,
+    datasets: [
+      {
+        label: 'Taxa feminina observada',
+        data: femObs,
+        borderColor: '#e91e8c',
+        fill: false, tension: 0.3, pointRadius: 4,
+        pointBackgroundColor: '#e91e8c', borderWidth: 2
+      },
+      {
+        label: 'Tendência ajustada (fem.)',
+        data: femTend,
+        borderColor: '#e91e8c',
+        borderDash: [6, 4],
+        fill: false, tension: 0, pointRadius: 0, borderWidth: 1.5
+      },
+      {
+        label: 'Taxa masculina observada',
+        data: mascObs,
+        borderColor: '#2e86c1',
+        fill: false, tension: 0.3, pointRadius: 4,
+        pointBackgroundColor: '#2e86c1', borderWidth: 2
+      },
+      {
+        label: 'Tendência ajustada (masc.)',
+        data: mascTend,
+        borderColor: '#2e86c1',
+        borderDash: [6, 4],
+        fill: false, tension: 0, pointRadius: 0, borderWidth: 1.5
+      }
+    ]
+  },
+  options: { ...baseOpt, scales: { ...baseOpt.scales, y: { ...baseOpt.scales.y, min: 90 } } }
+});
+</script>
 </body>
 </html>
