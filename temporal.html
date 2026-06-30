@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Análise Temporal — Neoplasias SP</title>
 <link rel="stylesheet" href="styles.css">
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
   .page-title-bar {
     background: white;
@@ -172,6 +171,7 @@
     <a href="temporal.html" class="active"><span class="nav-icon">📈</span>Análise Temporal</a>
     <a href="tratamento.html"><span class="nav-icon">⏱️</span>Tempo Médio até Tratamento</a>
     <a href="espacial.html"><span class="nav-icon">🗺️</span>Análise Espacial</a>
+    <a href="espaco-temporal.html"><span class="nav-icon">📍</span>Análise Espaço-Temporal</a>
     <div class="sidebar-footer">
       <div class="periodo-label">Período de análise</div>
       <div class="periodo-valor">2013 a 2023</div>
@@ -182,17 +182,16 @@
 
     <div class="page-title-bar">
       <div>
-        <h2>Análise Temporal da Mortalidade por Neoplasias</h2>
-        <p>Estado de São Paulo (2013–2023) — Joinpoint Regression</p>
+        <h2>Mortalidade por Neoplasias no Estado de São Paulo (2013–2023)</h2>
+        <p>Análise temporal</p>
       </div>
-      <div class="page-badge">APC · Taxa por 100 mil hab.</div>
     </div>
 
     <!-- Figura 1 -->
     <div class="figura">
       <div class="fig-chart">
-        <div class="fig-title">Figura 1. Tendência temporal da taxa de mortalidade por neoplasias (Total) — São Paulo, 2013 a 2023</div>
-        <div class="fig-canvas"><canvas id="chartTotal"></canvas></div>
+        <div class="fig-title">Figura 1. Tendência temporal da taxa de mortalidade por neoplasias de 2013 a 2023, São Paulo, Brasil.</div>
+        <div class="fig-canvas"><img src="images/grafico-temporal-total.png" alt="Figura 1" style="width:100%;height:100%;object-fit:contain;display:block"></div>
       </div>
       <div class="fig-info">
         <div class="info-card">
@@ -201,7 +200,7 @@
             <div class="info-card-label">Tendência crescente significativa</div>
           </div>
           <div class="info-card-text">
-            Entre 2013 e 2023, a taxa de mortalidade por neoplasias no estado de São Paulo apresentou aumento significativo, com <strong>APC de 1,45% ao ano</strong>.
+            Entre 2013 e 2023, a taxa de mortalidade por neoplasias no estado de São Paulo apresentou aumento significativo, com <strong>Variação Percentual Anual (<em>Annual Percent Change</em> - APC) de 1,45% ao ano</strong>.
           </div>
           <div class="info-obs">
             <strong>Observação:</strong><br>
@@ -228,12 +227,12 @@
     <!-- Figura 2 -->
     <div class="figura">
       <div class="fig-chart">
-        <div class="fig-title">Figura 2. Tendência temporal da taxa de mortalidade por neoplasias segundo sexo — São Paulo, 2013 a 2023</div>
-        <div class="fig-canvas"><canvas id="chartSexo"></canvas></div>
+        <div class="fig-title">Figura 2. Tendência temporal da taxa de mortalidade por neoplasias segundo sexo de 2013 a 2023, São Paulo, Brasil.</div>
+        <div class="fig-canvas"><img src="images/grafico-temporal-sexo.png" alt="Figura 2" style="width:100%;height:100%;object-fit:contain;display:block"></div>
       </div>
       <div class="fig-info">
         <div class="apc-sex-card">
-          <div class="apc-sex-card-title">Variação percentual anual (APC) por sexo (2013–2023)</div>
+          <div class="apc-sex-card-title">Variação percentual anual por sexo</div>
           <div class="apc-sex-row masc">
             <div class="apc-sex-icon">👨</div>
             <div class="apc-sex-body">
@@ -254,7 +253,7 @@
             <div class="dest-mini-title">⭐ Destaques</div>
             <ul>
               <li>Homens apresentaram taxas mais altas em todo o período.</li>
-              <li>Mulheres apresentaram crescimento mais acelerado (APC 1,95%).</li>
+              <li>Mulheres apresentaram crescimento mais acelerado.</li>
             </ul>
           </div>
         </div>
@@ -268,108 +267,5 @@
   </div><!-- /content -->
 </div><!-- /layout -->
 
-<script>
-const anos = ['2013','2014','2015','2016','2017','2018','2019','2020','2021','2022','2023'];
-const totalObs = [113.7,115.4,117.1,118.8,120.5,122.2,124.0,121.5,126.3,130.8,135.7];
-const mascObs  = [131.2,132.6,134.0,135.4,136.8,138.2,139.7,137.0,141.6,145.3,149.0];
-const femObs   = [97.5,99.5,101.4,103.4,105.5,107.6,109.8,107.2,113.2,118.2,124.0];
-
-/* Regressão linear simples */
-function linearTrend(data) {
-  const n = data.length;
-  const xMean = (n - 1) / 2;
-  const yMean = data.reduce((a, b) => a + b, 0) / n;
-  let num = 0, den = 0;
-  data.forEach((y, i) => { num += (i - xMean) * (y - yMean); den += (i - xMean) ** 2; });
-  const slope = num / den;
-  const intercept = yMean - slope * xMean;
-  return data.map((_, i) => parseFloat((intercept + slope * i).toFixed(2)));
-}
-
-const totalTend = linearTrend(totalObs);
-const mascTend  = linearTrend(mascObs);
-const femTend   = linearTrend(femObs);
-
-const baseOpt = {
-  responsive: true,
-  maintainAspectRatio: false,
-  plugins: { legend: { labels: { font: { size: 11 }, boxWidth: 24, padding: 10 } } },
-  scales: {
-    x: { ticks: { font: { size: 10 } } },
-    y: { ticks: { font: { size: 10 }, callback: v => v.toFixed(1) } }
-  }
-};
-
-/* Gráfico 1 — Total */
-new Chart(document.getElementById('chartTotal'), {
-  type: 'line',
-  data: {
-    labels: anos,
-    datasets: [
-      {
-        label: 'Taxa observada',
-        data: totalObs,
-        borderColor: '#f39c12',
-        backgroundColor: 'rgba(243,156,18,0.1)',
-        fill: false,
-        tension: 0.3,
-        pointRadius: 4,
-        pointBackgroundColor: '#f39c12',
-        borderWidth: 2
-      },
-      {
-        label: 'Tendência ajustada',
-        data: totalTend,
-        borderColor: '#8e44ad',
-        borderDash: [6, 4],
-        fill: false,
-        tension: 0,
-        pointRadius: 0,
-        borderWidth: 2
-      }
-    ]
-  },
-  options: { ...baseOpt, scales: { ...baseOpt.scales, y: { ...baseOpt.scales.y, min: 108 } } }
-});
-
-/* Gráfico 2 — Por sexo */
-new Chart(document.getElementById('chartSexo'), {
-  type: 'line',
-  data: {
-    labels: anos,
-    datasets: [
-      {
-        label: 'Taxa feminina observada',
-        data: femObs,
-        borderColor: '#e91e8c',
-        fill: false, tension: 0.3, pointRadius: 4,
-        pointBackgroundColor: '#e91e8c', borderWidth: 2
-      },
-      {
-        label: 'Tendência ajustada (fem.)',
-        data: femTend,
-        borderColor: '#e91e8c',
-        borderDash: [6, 4],
-        fill: false, tension: 0, pointRadius: 0, borderWidth: 1.5
-      },
-      {
-        label: 'Taxa masculina observada',
-        data: mascObs,
-        borderColor: '#2e86c1',
-        fill: false, tension: 0.3, pointRadius: 4,
-        pointBackgroundColor: '#2e86c1', borderWidth: 2
-      },
-      {
-        label: 'Tendência ajustada (masc.)',
-        data: mascTend,
-        borderColor: '#2e86c1',
-        borderDash: [6, 4],
-        fill: false, tension: 0, pointRadius: 0, borderWidth: 1.5
-      }
-    ]
-  },
-  options: { ...baseOpt, scales: { ...baseOpt.scales, y: { ...baseOpt.scales.y, min: 90 } } }
-});
-</script>
 </body>
 </html>

@@ -103,6 +103,9 @@ body {
   font-size: 1.4rem;
   line-height: 1;
 }
+.sidebar a[href="perfil.html"] .nav-icon {
+  filter: grayscale(1) brightness(1.6);
+}
 
 .sidebar-footer {
   margin-top: auto;

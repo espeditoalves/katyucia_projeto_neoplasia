@@ -45,7 +45,7 @@
   /* ── CARDS COLORIDOS ── */
   .kpi-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: 14px;
     margin-bottom: 20px;
   }
@@ -164,6 +164,7 @@
   .pb3 { background:#cd7f32; color:#fff; }
   .pb4 { background:#dde3eb; color:#444; }
   .pb5 { background:#dde3eb; color:#444; }
+  .pb-yellow { background:#ffd700; color:#7d5c00; }
 
   .tipos-col-header {
     display: flex;
@@ -246,6 +247,7 @@
       <span class="nav-icon">🗺️</span>
       Análise Espacial
     </a>
+    <a href="espaco-temporal.html"><span class="nav-icon">📍</span>Análise Espaço-Temporal</a>
     <div class="sidebar-footer">
       <div class="periodo-label">Período de análise</div>
       <div class="periodo-valor">2013 a 2023</div>
@@ -261,7 +263,6 @@
           <h2>Neoplasias no Estado de São Paulo (2013–2023)</h2>
           <p>Visão Geral</p>
         </div>
-        <div class="page-badge">📋 Informações metodológicas &nbsp;·&nbsp; Dados DATASUS / INCA</div>
       </div>
     </div>
 
@@ -269,27 +270,21 @@
     <div class="kpi-grid">
       <div class="kpi kpi-1">
         <div class="kpi-icon">🔬</div>
-        <div class="kpi-label">Casos Novos Estimados<br>no Estado de São Paulo</div>
+        <div class="kpi-label">Casos Novos Estimados</div>
         <div class="kpi-value">150 mil a<br>180 mil <span>casos novos por ano</span></div>
         <div class="kpi-sub">Total no período (2013–2023)<br>= 1,6 a 1,8 milhão</div>
       </div>
       <div class="kpi kpi-2">
         <div class="kpi-icon">🏥</div>
-        <div class="kpi-label">Internações Estimadas<br>no Estado de São Paulo</div>
+        <div class="kpi-label">Internações Estimadas</div>
         <div class="kpi-value">200 mil a<br>300 mil <span>internações por ano</span></div>
         <div class="kpi-sub">Total no período (2013–2023)<br>= 2,2 a 3 milhões</div>
       </div>
       <div class="kpi kpi-3">
         <div class="kpi-icon">🎗️</div>
-        <div class="kpi-label">Óbitos por Neoplasias<br>no Estado de São Paulo</div>
+        <div class="kpi-label">Óbitos por Neoplasias</div>
         <div class="kpi-value">614.531</div>
-        <div class="kpi-sub">óbitos no período (2013–2023)<br>Fonte: DATASUS</div>
-      </div>
-      <div class="kpi kpi-4">
-        <div class="kpi-icon">🗺️</div>
-        <div class="kpi-label">Participação de SP<br>no Brasil (casos novos)</div>
-        <div class="kpi-value">≈ 70%</div>
-        <div class="kpi-sub">dos casos novos de câncer<br>concentram-se no Sul e Sudeste</div>
+        <div class="kpi-sub">Óbitos no período (2013–2023)</div>
       </div>
     </div>
 
@@ -318,7 +313,7 @@
               <thead><tr><th>Pos.</th><th class="tipo-nome" style="text-align:left">Tipo de câncer</th></tr></thead>
               <tbody>
                 <tr><td><span class="pos-badge pb1">1º</span></td><td class="tipo-nome">Próstata</td></tr>
-                <tr><td><span class="pos-badge pb2">2º</span></td><td class="tipo-nome">Cólon e reto</td></tr>
+                <tr><td><span class="pos-badge pb-yellow">2º</span></td><td class="tipo-nome">Cólon e reto</td></tr>
                 <tr><td><span class="pos-badge pb3">3º</span></td><td class="tipo-nome">Pulmão</td></tr>
                 <tr><td><span class="pos-badge pb4">4º</span></td><td class="tipo-nome">Estômago</td></tr>
                 <tr><td><span class="pos-badge pb5">5º</span></td><td class="tipo-nome">Cavidade oral</td></tr>
@@ -331,7 +326,7 @@
               <thead><tr><th>Pos.</th><th class="tipo-nome" style="text-align:left">Tipo de câncer</th></tr></thead>
               <tbody>
                 <tr><td><span class="pos-badge pb1">1º</span></td><td class="tipo-nome">Mama feminina</td></tr>
-                <tr><td><span class="pos-badge pb2">2º</span></td><td class="tipo-nome">Cólon e reto</td></tr>
+                <tr><td><span class="pos-badge pb-yellow">2º</span></td><td class="tipo-nome">Cólon e reto</td></tr>
                 <tr><td><span class="pos-badge pb3">3º</span></td><td class="tipo-nome">Colo do útero</td></tr>
                 <tr><td><span class="pos-badge pb4">4º</span></td><td class="tipo-nome">Pulmão</td></tr>
                 <tr><td><span class="pos-badge pb5">5º</span></td><td class="tipo-nome">Tireoide</td></tr>
@@ -348,7 +343,7 @@
       <div class="panel">
         <div class="panel-title">Principais destaques</div>
         <ul class="destaque-list">
-          <li>São Paulo concentra cerca de <strong>70% dos casos novos</strong> de câncer do Brasil (regiões Sul e Sudeste).</li>
+          <li>São Paulo concentra cerca de <strong>70% dos casos novos</strong> de câncer do Brasil.</li>
           <li>Estimam-se entre <strong>150 mil e 180 mil casos novos por ano</strong> no estado, totalizando entre 1,6 e 1,8 milhão de casos no período de 2013 a 2023.</li>
           <li>As internações relacionadas ao câncer variam entre <strong>200 mil e 300 mil por ano</strong>, totalizando entre 2,2 e 3 milhões no período.</li>
           <li>Foram registrados <strong>614.531 óbitos</strong> por neoplasias entre 2013 e 2023 (Fonte: DATASUS).</li>

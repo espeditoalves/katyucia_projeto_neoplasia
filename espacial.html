@@ -246,6 +246,7 @@
     <a href="temporal.html"><span class="nav-icon">📈</span>Análise Temporal</a>
     <a href="tratamento.html"><span class="nav-icon">⏱️</span>Tempo Médio até Tratamento</a>
     <a href="espacial.html" class="active"><span class="nav-icon">🗺️</span>Análise Espacial</a>
+    <a href="espaco-temporal.html"><span class="nav-icon">📍</span>Análise Espaço-Temporal</a>
     <div class="sidebar-footer">
       <div class="periodo-label">Período de análise</div>
       <div class="periodo-valor">2013 a 2023</div>
@@ -260,7 +261,6 @@
         <h2>Mortalidade por Neoplasias no Estado de São Paulo (2013–2023)</h2>
         <p>Análise Espacial</p>
       </div>
-      <div class="page-badge">ℹ️ Informações metodológicas &nbsp;·&nbsp; Dados de 28/02/2026</div>
     </div>
 
     <!-- Cards Moran -->
@@ -293,12 +293,12 @@
       <!-- 4 mapas -->
       <div class="mapas-grid">
         <div class="mapa-panel">
-          <div class="mapa-label"><span class="mapa-badge">A</span> Taxas Brutas <span style="font-weight:400;color:var(--cinza-sub)">(óbitos por 100 mil hab.)</span></div>
+          <div class="mapa-label"><span class="mapa-badge">A</span> Distribuição espacial das taxas brutas <span style="font-weight:400;color:var(--cinza-sub)">(óbitos por 100 mil hab.)</span></div>
           <img src="images/mapa-espacial-A.png" alt="Taxas Brutas" class="mapa-img" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
           <div class="mapa-img-placeholder" style="display:none">Salve <strong>images/mapa-espacial-A.png</strong></div>
         </div>
         <div class="mapa-panel">
-          <div class="mapa-label"><span class="mapa-badge">B</span> Taxas Suavizadas <span style="font-weight:400;color:var(--cinza-sub)">(óbitos por 100 mil hab.)</span></div>
+          <div class="mapa-label"><span class="mapa-badge">B</span> Distribuição espacial das taxas suavizadas <span style="font-weight:400;color:var(--cinza-sub)">(óbitos por 100 mil hab.)</span></div>
           <img src="images/mapa-espacial-B.png" alt="Taxas Suavizadas" class="mapa-img" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
           <div class="mapa-img-placeholder" style="display:none">Salve <strong>images/mapa-espacial-B.png</strong></div>
         </div>
@@ -308,7 +308,7 @@
           <div class="mapa-img-placeholder" style="display:none">Salve <strong>images/mapa-espacial-C.png</strong></div>
         </div>
         <div class="mapa-panel">
-          <div class="mapa-label"><span class="mapa-badge">D</span> Análise de Moran Local <span style="font-weight:400;color:var(--cinza-sub)">(Bivariada: Mort. × Tempo)</span></div>
+          <div class="mapa-label"><span class="mapa-badge">D</span> Análise de Moran Local <span style="font-weight:400;color:var(--cinza-sub)">(Bivariada: Mortalidade x Tempo de Espera)</span></div>
           <img src="images/mapa-espacial-D.png" alt="Análise Bivariada" class="mapa-img" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
           <div class="mapa-img-placeholder" style="display:none">Salve <strong>images/mapa-espacial-D.png</strong></div>
         </div>
@@ -337,75 +337,7 @@
 
     </div><!-- /espacial-main -->
 
-    <!-- Tabela + Mapa clusters -->
-    <div class="bottom-row">
-
-      <div class="clusters-panel">
-        <div class="clusters-title">Aglomerados espaço-temporais de taxas anuais de mortalidade por neoplasias (2013–2023)</div>
-        <table class="clusters-table">
-          <thead>
-            <tr>
-              <th>Aglomerado</th>
-              <th>Período</th>
-              <th>Municípios</th>
-              <th>Mortes</th>
-              <th>Mortes esperadas</th>
-              <th>Taxa anual de mortalidade*</th>
-              <th>RR</th>
-              <th>LLR</th>
-              <th>p</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td><strong>1</strong></td><td>2019–2023</td><td>1</td>
-              <td>1.590</td><td>21,64</td><td>9.137,6</td>
-              <td><span class="rr-alto">73,65</span></td><td>5.265,53</td><td>0,001</td>
-            </tr>
-            <tr>
-              <td><strong>2</strong></td><td>2019–2023</td><td>246</td>
-              <td>60.193</td><td>51.918,09</td><td>144,2</td>
-              <td><span class="rr-baixo">1,18</span></td><td>688,12</td><td>0,001</td>
-            </tr>
-            <tr>
-              <td><strong>3</strong></td><td>2019–2023</td><td>1</td>
-              <td>361</td><td>26,27</td><td>1.709,0</td>
-              <td><span class="rr-alto">13,75</span></td><td>611,29</td><td>0,001</td>
-            </tr>
-            <tr>
-              <td><strong>4</strong></td><td>2019–2023</td><td>1</td>
-              <td>4.299</td><td>2.699,76</td><td>198,1</td>
-              <td><span class="rr-medio">1,60</span></td><td>402,83</td><td>0,001</td>
-            </tr>
-            <tr>
-              <td><strong>5</strong></td><td>2019–2023</td><td>19</td>
-              <td>6.581</td><td>5.390,23</td><td>151,9</td>
-              <td><span class="rr-baixo">1,22</span></td><td>123,95</td><td>0,001</td>
-            </tr>
-          </tbody>
-        </table>
-        <div class="clusters-note">
-          RR = risco relativo em comparação com o resto da região; LLR = razão de verossimilhança<br>
-          *Coeficiente de mortalidade por neoplasias (por 100 mil habitantes) durante o período de agrupamento.
-        </div>
-      </div>
-
-      <div class="cluster-mapa-panel">
-        <div class="cluster-mapa-title">Distribuição dos aglomerados espaço-temporais (2013–2023)</div>
-        <img src="images/mapa-clusters.png" alt="Mapa de Clusters" style="width:100%;border-radius:6px;display:block;margin-bottom:8px" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-        <div class="mapa-img-placeholder" style="display:none;height:140px">Salve <strong>images/mapa-clusters.png</strong> na pasta dashboard</div>
-        <div class="legenda-item"><div class="legenda-cor" style="background:#c0392b"></div>Cluster mais provável (RR mais alto)</div>
-        <div class="legenda-item"><div class="legenda-cor" style="background:#f0a500"></div>Clusters secundários (RR moderado) — 246 municípios</div>
-        <div class="legenda-item"><div class="legenda-cor" style="background:#f0f3f7;border:1px solid #ccc"></div>Não significativo</div>
-        <div class="cluster-nota">
-          Um cluster principal (vermelho) com RR extremamente elevado foi identificado em um único município próximo ao litoral (RR 73,65).<br><br>
-          Clusters secundários (laranja) abrangem 246 municípios distribuídos por grande parte do território paulista, com RR entre 1,18 e 13,75.
-        </div>
-      </div>
-
-    </div><!-- /bottom-row -->
-
-    <div class="fonte-bar">Fonte: SaTScan · Análise LISA (Anselin Local Moran's I) · SIM/DATASUS</div>
+    <div class="fonte-bar">Fonte: Análise LISA (Anselin Local Moran's I) · SIM/DATASUS</div>
 
   </div><!-- /content -->
 </div><!-- /layout -->
